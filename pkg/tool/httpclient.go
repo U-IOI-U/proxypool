@@ -2,6 +2,7 @@ package tool
 
 import (
 	"io"
+	"crypto/tls"
 	"net/http"
 	"time"
 )
@@ -17,6 +18,7 @@ var httpClient *HttpClient
 func init() {
 	httpClient = &HttpClient{http.DefaultClient}
 	httpClient.Timeout = time.Second * 10
+	httpClient.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
 }
 
 func GetHttpClient() *HttpClient {
