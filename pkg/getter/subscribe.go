@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 	"sync"
-
+	"gopkg.in/yaml.v3"
 	"github.com/ssrlive/proxypool/log"
 
 	"github.com/ssrlive/proxypool/pkg/proxy"
@@ -33,14 +33,28 @@ func (s *Subscribe) Get() proxy.ProxyList {
 		return nil
 	}
 
-	nodesString, err := tool.Base64DecodeString(string(body))
-	if err != nil {
-		return nil
+	if strings.Contains(string(body), "proxies:") {
+		conf := config{}
+		err = yaml.Unmarshal(body, &conf)
+		if err != nil {
+			return nil
+		}
+	
+		return ClashProxy2ProxyArray(conf.Proxy)
+	} else {
+		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") {
+			return FuzzParseProxyFromString(string(body))
+		} else {
+			nodesString, err := tool.Base64DecodeString(string(body))
+			if err != nil {
+				return nil
+			}
+			nodesString = strings.ReplaceAll(nodesString, "\t", "")
+		
+			nodes := strings.Split(nodesString, "\n")
+			return StringArray2ProxyArray(nodes)
+		}
 	}
-	nodesString = strings.ReplaceAll(nodesString, "\t", "")
-
-	nodes := strings.Split(nodesString, "\n")
-	return StringArray2ProxyArray(nodes)
 }
 
 // Subscribe is to implement Getter interface. It gets proxies and send proxy to channel one by one
