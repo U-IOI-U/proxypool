@@ -21,6 +21,7 @@ type ConfigOptions struct {
 	CrawlInterval         uint64   `json:"crawl-interval" yaml:"crawl-interval"`
 	CFEmail               string   `json:"cf_email" yaml:"cf_email"`
 	CFKey                 string   `json:"cf_key" yaml:"cf_key"`
+	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
 	HealthCheckConnection int      `json:"healthcheck-connection" yaml:"healthcheck-connection"`
@@ -66,6 +67,9 @@ func Parse(path string) error {
 	}
 	if Config.CrawlInterval == 0 {
 		Config.CrawlInterval = 60
+	}
+	if Config.TGFileApi == "" {
+		Config.TGFileApi = "https://tg.i-c-a.su/rss/"
 	}
 	if Config.SpeedTestInterval == 0 {
 		Config.SpeedTestInterval = 720
