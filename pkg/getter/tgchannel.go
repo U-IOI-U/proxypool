@@ -8,7 +8,7 @@ import (
 	"html"
 
 	"github.com/ssrlive/proxypool/log"
-
+	C "github.com/ssrlive/proxypool/config"
 	"github.com/gocolly/colly"
 	"github.com/ssrlive/proxypool/pkg/proxy"
 	"github.com/ssrlive/proxypool/pkg/tool"
@@ -49,7 +49,7 @@ func NewTGChannelGetter(options tool.Options) (getter Getter, err error) {
 			c:         tool.GetColly(),
 			NumNeeded: t,
 			Url:       "https://t.me/s/" + url,
-			apiUrl:    "https://tg.i-c-a.su/rss/" + url,
+			apiUrl:    C.Config.TGFileApi + url,
 		}, nil
 	}
 	return nil, ErrorUrlNotFound
@@ -116,14 +116,14 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 		if strings.Contains(s, "enclosure url") { // get to xml node
 			elements := strings.Split(s, "\"")
 			for _, e := range elements {
-				if strings.Contains(e, "https://") {
+				if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
 					// Webfuzz的可能性比较大，也有可能是订阅链接，为了不拖慢运行速度不写了
 					// result = append(result, (&WebFuzz{Url: e}).Get()...)
-					newResult := (&WebFuzz{Url: e}).Get()
+					newResult := (&Subscribe{Url: e}).Get()
 					if len(newResult) > 0 {
 						result = append(result, newResult...)
 						// 打印有效的订阅链接，或许可以发现长效的订阅
-						log.Debugln("\tSTATISTIC: TGchannel WebFuzz\tcount=%-5d url=%s\n", len(newResult), e)
+						log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", len(newResult), e)
 					}
 				}
 			}
