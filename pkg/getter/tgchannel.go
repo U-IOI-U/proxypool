@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"sync"
+	"html"
 
 	"github.com/ssrlive/proxypool/log"
 
@@ -61,9 +62,21 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 	g.c.OnHTML("div.tgme_widget_message_text", func(e *colly.HTMLElement) {
 		g.results = append(g.results, GrepLinksFromString(e.Text)...)
 		// 抓取到http链接，有可能是订阅链接或其他链接，无论如何试一下
-		subUrls := urlRe.FindAllString(e.Text, -1)
+		subUrls := urlRe.FindAllString(html.UnescapeString(e.Text), -1)
 		for _, url := range subUrls {
-			result = append(result, (&Subscribe{Url: url}).Get()...)
+			// 屏蔽掉无效的链接
+			if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+				if strings.HasPrefix(url, "https://t.me") {
+					continue
+				}
+				// result = append(result, (&Subscribe{Url: url}).Get()...)
+				newResult := (&Subscribe{Url: url}).Get()
+				if len(newResult) > 0 {
+					result = append(result, newResult...)
+					// 打印有效的订阅链接，或许可以发现长效的订阅
+					log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", len(newResult), url)
+				}
+			}
 		}
 	})
 
@@ -72,6 +85,13 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 		if len(g.results) < g.NumNeeded {
 			_ = e.Request.Visit(e.Attr("href"))
 		}
+	})
+
+	// 在通过Text获取网页内容之前，把网页内容进行分割，以防内容粘在一起无法识别
+	g.c.OnResponse(func(r *colly.Response) {
+		body := string(r.Body)
+		body = strings.ReplaceAll(strings.ReplaceAll(body, "<", " <"), ">", "> ")
+		r.Body = []byte(body)
 	})
 
 	g.results = make([]string, 0)
@@ -89,7 +109,7 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil
+		return result
 	}
 	items := strings.Split(string(body), "\n")
 	for _, s := range items {
@@ -98,7 +118,13 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 			for _, e := range elements {
 				if strings.Contains(e, "https://") {
 					// Webfuzz的可能性比较大，也有可能是订阅链接，为了不拖慢运行速度不写了
-					result = append(result, (&WebFuzz{Url: e}).Get()...)
+					// result = append(result, (&WebFuzz{Url: e}).Get()...)
+					newResult := (&WebFuzz{Url: e}).Get()
+					if len(newResult) > 0 {
+						result = append(result, newResult...)
+						// 打印有效的订阅链接，或许可以发现长效的订阅
+						log.Debugln("\tSTATISTIC: TGchannel WebFuzz\tcount=%-5d url=%s\n", len(newResult), e)
+					}
 				}
 			}
 		}
