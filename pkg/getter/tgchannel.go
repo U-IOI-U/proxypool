@@ -49,7 +49,7 @@ func NewTGChannelGetter(options tool.Options) (getter Getter, err error) {
 			c:         tool.GetColly(),
 			NumNeeded: t,
 			Url:       "https://t.me/s/" + url,
-			apiUrl:    C.Config.TGFileApi + url,
+			apiUrl:    C.Config.TGFileApi + url + "?limit=100",
 		}, nil
 	}
 	return nil, ErrorUrlNotFound
@@ -117,6 +117,10 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 			elements := strings.Split(s, "\"")
 			for _, e := range elements {
 				if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
+					if strings.HasSuffix(e, ".apk") || strings.HasSuffix(e, ".webp") || strings.HasSuffix(e, ".jpg") || strings.HasSuffix(e, ".mp4") ||
+						strings.HasSuffix(e, ".exe") || strings.HasSuffix(e, ".mp3") || strings.HasSuffix(e, ".rar") || strings.HasSuffix(e, ".zip") {
+						continue
+					}
 					// Webfuzz的可能性比较大，也有可能是订阅链接，为了不拖慢运行速度不写了
 					// result = append(result, (&WebFuzz{Url: e}).Get()...)
 					newResult := (&Subscribe{Url: e}).Get()
