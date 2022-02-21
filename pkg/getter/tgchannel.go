@@ -68,10 +68,14 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 
 	// 找到之前消息页面的链接，加入访问队列
 	g.c.OnHTML("link[rel=prev]", func(e *colly.HTMLElement) {
-		if len(g.results) < g.NumNeeded {
+		if (len(g.results) < g.NumNeeded) && (len(subHtmls) < g.NumNeeded) { // 逻辑用找到的节点的数量和消息的数量做判断，预防处理时间太长
 			_ = e.Request.Visit(e.Attr("href"))
 		}
 	})
+
+	// g.c.OnRequest(func(r *colly.Request) {
+	// 	log.Debugln("Visiting %s\n", r.URL)
+	// })
 
 	// 在通过Text获取网页内容之前，把网页内容进行分割，以防内容粘在一起无法识别
 	g.c.OnResponse(func(r *colly.Response) {
