@@ -49,7 +49,7 @@ func NewTGChannelGetter(options tool.Options) (getter Getter, err error) {
 			c:         tool.GetColly(),
 			NumNeeded: t,
 			Url:       "https://t.me/s/" + url,
-			apiUrl:    C.Config.TGFileApi + url + "?limit=100",
+			apiUrl:    C.Config.TGFileApi + url + "?limit=30",
 		}, nil
 	}
 	return nil, ErrorUrlNotFound
@@ -57,27 +57,13 @@ func NewTGChannelGetter(options tool.Options) (getter Getter, err error) {
 
 func (g *TGChannelGetter) Get() proxy.ProxyList {
 	result := make(proxy.ProxyList, 0)
+	subHtmls := make([]string, 0)
 	g.results = make([]string, 0)
 	// 找到所有的文字消息
 	g.c.OnHTML("div.tgme_widget_message_text", func(e *colly.HTMLElement) {
 		g.results = append(g.results, GrepLinksFromString(e.Text)...)
 		// 抓取到http链接，有可能是订阅链接或其他链接，无论如何试一下
-		subUrls := urlRe.FindAllString(html.UnescapeString(e.Text), -1)
-		for _, url := range subUrls {
-			// 屏蔽掉无效的链接
-			if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
-				if strings.HasPrefix(url, "https://t.me") {
-					continue
-				}
-				// result = append(result, (&Subscribe{Url: url}).Get()...)
-				newResult := (&Subscribe{Url: url}).Get()
-				if len(newResult) > 0 {
-					result = append(result, newResult...)
-					// 打印有效的订阅链接，或许可以发现长效的订阅
-					log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", len(newResult), url)
-				}
-			}
-		}
+		subHtmls = append(subHtmls, html.UnescapeString(e.Text))
 	})
 
 	// 找到之前消息页面的链接，加入访问队列
@@ -103,36 +89,44 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 
 	// 获取文件(api需要维护)
 	resp, err := tool.GetHttpClient().Get(g.apiUrl)
-	if err != nil {
-		return result
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return result
-	}
-	items := strings.Split(string(body), "\n")
-	for _, s := range items {
-		if strings.Contains(s, "enclosure url") { // get to xml node
-			elements := strings.Split(s, "\"")
-			for _, e := range elements {
-				if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
-					if strings.HasSuffix(e, ".apk") || strings.HasSuffix(e, ".webp") || strings.HasSuffix(e, ".jpg") || strings.HasSuffix(e, ".mp4") ||
-						strings.HasSuffix(e, ".exe") || strings.HasSuffix(e, ".mp3") || strings.HasSuffix(e, ".rar") || strings.HasSuffix(e, ".zip") {
-						continue
-					}
-					// Webfuzz的可能性比较大，也有可能是订阅链接，为了不拖慢运行速度不写了
-					// result = append(result, (&WebFuzz{Url: e}).Get()...)
-					newResult := (&Subscribe{Url: e}).Get()
-					if len(newResult) > 0 {
-						result = append(result, newResult...)
-						// 打印有效的订阅链接，或许可以发现长效的订阅
-						log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", len(newResult), e)
+	if err == nil {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			items := strings.Split(string(body), "\n")
+			for _, s := range items {
+				if strings.Contains(s, "enclosure url") { // get to xml node
+					elements := strings.Split(s, "\"")
+					for _, e := range elements {
+						if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
+							subHtmls = append(subHtmls, e)
+						}
 					}
 				}
 			}
 		}
 	}
+	
+	// 处理订阅链接
+	subUrls := FindAllSubscribeUrl(strings.Join(subHtmls, " "), -1)
+	for _, url := range subUrls {
+		// 屏蔽掉无效的链接
+		if strings.HasPrefix(url, "https://t.me") {
+			continue
+		}
+		// result = append(result, (&Subscribe{Url: url}).Get()...)
+		newResult := (&Subscribe{Url: url}).Get()
+		newResultLen := len(newResult)
+		if newResultLen > 0 {
+			result = append(result, newResult...)
+			// 打印有效的订阅链接，或许可以发现长效的订阅
+			log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", newResultLen, url)
+		} else {
+			// 打印无效的链接，调试用
+			log.Debugln("\tSTATISTIC: TGchannel Subscribe url=%s\n", url)
+		}
+	}
+
 	return result
 }
 

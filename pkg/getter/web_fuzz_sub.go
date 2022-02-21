@@ -2,7 +2,6 @@ package getter
 
 import (
 	"io"
-	"regexp"
 	"sync"
 
 	"github.com/ssrlive/proxypool/log"
@@ -30,12 +29,13 @@ func (w *WebFuzzSub) Get() proxy.ProxyList {
 		return nil
 	}
 	text := string(body)
-	subUrls := urlRe.FindAllString(text, -1)
+	subUrls := FindAllSubscribeUrl(text, -1)
 	result := make(proxy.ProxyList, 0)
 	for _, url := range subUrls {
 		newResult := (&Subscribe{Url: url}).Get()
-		if len(newResult) == 0 {
-			log.Debugln("\tSTATISTIC: WebFuzzSub\tcount=%-5d sub url=%s\n", len(newResult), url)
+		newResultLen := len(newResult)
+		if newResultLen == 0 {
+			log.Debugln("\tSTATISTIC: WebFuzzSub\tcount=%-5d sub url=%s\n", newResultLen, url)
 		}
 		result = result.UniqAppendProxyList(newResult)
 	}
@@ -62,35 +62,3 @@ func NewWebFuzzSubGetter(options tool.Options) (getter Getter, err error) {
 	}
 	return nil, ErrorUrlNotFound
 }
-
-var urlRe = regexp.MustCompile(urlPattern)
-
-const (
-	// 匹配 IP4
-	ip4Pattern = `((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)`
-
-	// 匹配 IP6，参考以下网页内容：
-	// http://blog.csdn.net/jiangfeng08/article/details/7642018
-	ip6Pattern = `(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|` +
-		`(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|` +
-		`(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))`
-
-	// 同时匹配 IP4 和 IP6
-	ipPattern = "(" + ip4Pattern + ")|(" + ip6Pattern + ")"
-
-	// 匹配域名
-	domainPattern = `[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9][a-zA-Z0-9_-]{0,62})*(\.[a-zA-Z][a-zA-Z0-9]{0,10}){1}`
-
-	// 匹配 URL
-	urlPattern = `((https|http)?://)?` + // 协议
-		`(([0-9a-zA-Z]+:)?[0-9a-zA-Z_-]+@)?` + // pwd:user@
-		"(" + ipPattern + "|(" + domainPattern + "))" + // IP 或域名
-		`(:\d{1,5})?` + // 端口
-		`(/+[a-zA-Z0-9\-\%][a-zA-Z0-9_\@\%\.\-]*)*/*` + // path
-		`(\?([a-zA-Z0-9_\-]+(=[^<\s]*&?)*)*)*` // query
-)
