@@ -1,6 +1,6 @@
 // +heroku goVersion go1.14
 
-module github.com/ssrlive/proxypool
+module github.com/U-IOI-U/proxypool
 
 go 1.16
 
@@ -38,4 +38,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.5
+	github.com/U-IOI-U/proxypool v0.7.4
 )
