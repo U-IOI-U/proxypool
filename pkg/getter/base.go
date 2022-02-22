@@ -5,7 +5,7 @@ import (
 	"sync"
 	"regexp"
 	"strings"
-
+	C "github.com/ssrlive/proxypool/config"
 	"github.com/ssrlive/proxypool/pkg/proxy"
 	"github.com/ssrlive/proxypool/pkg/tool"
 )
@@ -148,10 +148,16 @@ func CheckSubscribeUrlValid(url string) bool {
 		return false
 	}
 	if strings.HasPrefix(url, "https://") || strings.HasPrefix(url, "http://") {
-		if strings.Count(url, "/") >= 3 {
-			extLists := []string{".apk", ".webp", ".jpg", ".jpeg", ".mp4", ".mp3", ".exe", ".rar", ".zip"}
-			for _, ext := range extLists {
-				if strings.HasSuffix(url, ext) {
+		if len(C.Config.SubUrlsBlackPrefix) > 0 {
+			for _, prefix := range C.Config.SubUrlsBlackPrefix {
+				if strings.HasPrefix(url, prefix) {
+					return false
+				}
+			}
+		}
+		if (strings.Count(url, "/") >= 3) && (len(C.Config.SubUrlsBlackSuffix) > 0) {
+			for _, suffix := range C.Config.SubUrlsBlackSuffix {
+				if strings.HasSuffix(url, suffix) {
 					return false
 				}
 			}
