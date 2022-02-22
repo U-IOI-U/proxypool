@@ -8,7 +8,7 @@ import (
 var subScribeHistory = make(map[string]int, 1000)
 var subScribeHistoryLock sync.Mutex
 
-func subScribeHistoryCheckUrlIn(url string) bool {
+func SubScribeHistoryCheckUrlIn(url string) bool {
 	subScribeHistoryLock.Lock()
 	defer subScribeHistoryLock.Unlock()
 
@@ -19,24 +19,26 @@ func subScribeHistoryCheckUrlIn(url string) bool {
 	return false
 }
 
-func subScribeHistoryUpdateRet(url string, num int) {
+func SubScribeHistoryUpdateRet(url string, num int) {
 	subScribeHistoryLock.Lock()
 	defer subScribeHistoryLock.Unlock()
 
 	subScribeHistory[url] = num
 }
 
-func subScribeHistoryClean() {
+func SubScribeHistoryClean() {
 	subScribeHistoryLock.Lock()
 	defer subScribeHistoryLock.Unlock()
 	
 	subScribeHistory = make(map[string]int, 1000)
 }
 
-func subScribeHistoryShow() {
+func SubScribeHistoryShow() {
+	defer SubScribeHistoryClean()
+
 	if (len(subScribeHistory) > 0) {
 		for key, value := range subScribeHistory {
-			log.Debugln("STATISTIC: Subscribe\t count= %-5d, url=%s\n", value, key)
+			log.Debugln("STATISTIC: Subscribe\tcount=%-5d\turl=%s\n", value, key)
 		}
 	}
 }

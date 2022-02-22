@@ -10,6 +10,7 @@ import (
 	"github.com/ssrlive/proxypool/pkg/healthcheck"
 	"github.com/ssrlive/proxypool/pkg/provider"
 	"github.com/ssrlive/proxypool/pkg/proxy"
+	"github.com/ssrlive/proxypool/pkg/tool"
 	"sync"
 	"time"
 )
@@ -48,7 +49,7 @@ func CrawlGo() {
 			proxies = proxies.UniqAppendProxy(p)
 		}
 	}
-
+	tool.SubScribeHistoryShow()
 	proxies.NameClear()
 	proxies = proxies.Derive()
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
