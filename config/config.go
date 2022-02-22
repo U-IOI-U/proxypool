@@ -23,6 +23,8 @@ type ConfigOptions struct {
 	CFKey                 string   `json:"cf_key" yaml:"cf_key"`
 	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
+	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
+	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
 	HealthCheckConnection int      `json:"healthcheck-connection" yaml:"healthcheck-connection"`
 	SpeedTest             bool     `json:"speedtest" yaml:"speedtest"`
