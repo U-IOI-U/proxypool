@@ -23,6 +23,7 @@ type Subscribe struct {
 
 // Get() of Subscribe is to implement Getter interface
 func (s *Subscribe) Get() proxy.ProxyList {
+	// if subScribeHistoryCheckUrlIn(s.Url) { return nil }
 	resp, err := tool.GetHttpClient().Get(s.Url)
 	if err != nil {
 		return nil
@@ -40,10 +41,14 @@ func (s *Subscribe) Get() proxy.ProxyList {
 			return nil
 		}
 	
-		return ClashProxy2ProxyArray(conf.Proxy)
+		result := ClashProxy2ProxyArray(conf.Proxy)
+		// subScribeHistoryUpdateRet(s.Url, len(result))
+		return result
 	} else {
 		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") {
-			return FuzzParseProxyFromString(string(body))
+			result := FuzzParseProxyFromString(string(body))
+			// subScribeHistoryUpdateRet(s.Url, len(result))
+			return result
 		} else {
 			nodesString, err := tool.Base64DecodeString(string(body))
 			if err != nil {
@@ -52,7 +57,9 @@ func (s *Subscribe) Get() proxy.ProxyList {
 			nodesString = strings.ReplaceAll(nodesString, "\t", "")
 		
 			nodes := strings.Split(nodesString, "\n")
-			return StringArray2ProxyArray(nodes)
+			result := StringArray2ProxyArray(nodes)
+			// subScribeHistoryUpdateRet(s.Url, len(result))
+			return result
 		}
 	}
 }
