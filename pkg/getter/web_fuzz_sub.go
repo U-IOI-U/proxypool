@@ -33,10 +33,10 @@ func (w *WebFuzzSub) Get() proxy.ProxyList {
 	result := make(proxy.ProxyList, 0)
 	for _, url := range subUrls {
 		newResult := (&Subscribe{Url: url}).Get()
-		newResultLen := len(newResult)
-		if newResultLen == 0 {
-			log.Debugln("\tSTATISTIC: WebFuzzSub\tcount=%-5d sub url=%s\n", newResultLen, url)
-		}
+		// newResultLen := len(newResult)
+		// if newResultLen == 0 {
+		// 	log.Debugln("\tSTATISTIC: WebFuzzSub\tcount=%-5d sub url=%s\n", newResultLen, url)
+		// }
 		result = result.UniqAppendProxyList(newResult)
 	}
 	return result

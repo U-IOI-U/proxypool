@@ -93,10 +93,10 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 		if newResultLen > 0 {
 			result = append(result, newResult...)
 			// 打印有效的订阅链接，或许可以发现长效的订阅
-			log.Debugln("\tSTATISTIC: TGgroup Subscribe\tcount=%-5d url=%s\n", newResultLen, url)
+			// log.Debugln("\tSTATISTIC: TGgroup Subscribe\tcount=%-5d url=%s\n", newResultLen, url)
 		} else {
 			// 打印无效的链接，调试用
-			log.Debugln("\tSTATISTIC: TGgroup Subscribe url=%s\n", url)
+			// log.Debugln("\tSTATISTIC: TGgroup Subscribe url=%s\n", url)
 		}
 	}
 
