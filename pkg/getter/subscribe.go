@@ -23,7 +23,7 @@ type Subscribe struct {
 
 // Get() of Subscribe is to implement Getter interface
 func (s *Subscribe) Get() proxy.ProxyList {
-	// if subScribeHistoryCheckUrlIn(s.Url) { return nil }
+	if tool.SubScribeHistoryCheckUrlIn(s.Url) { return nil }
 	resp, err := tool.GetHttpClient().Get(s.Url)
 	if err != nil {
 		return nil
@@ -42,12 +42,12 @@ func (s *Subscribe) Get() proxy.ProxyList {
 		}
 	
 		result := ClashProxy2ProxyArray(conf.Proxy)
-		// subScribeHistoryUpdateRet(s.Url, len(result))
+		tool.SubScribeHistoryUpdateRet(s.Url, len(result))
 		return result
 	} else {
 		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") {
 			result := FuzzParseProxyFromString(string(body))
-			// subScribeHistoryUpdateRet(s.Url, len(result))
+			tool.SubScribeHistoryUpdateRet(s.Url, len(result))
 			return result
 		} else {
 			nodesString, err := tool.Base64DecodeString(string(body))
@@ -58,7 +58,7 @@ func (s *Subscribe) Get() proxy.ProxyList {
 		
 			nodes := strings.Split(nodesString, "\n")
 			result := StringArray2ProxyArray(nodes)
-			// subScribeHistoryUpdateRet(s.Url, len(result))
+			tool.SubScribeHistoryUpdateRet(s.Url, len(result))
 			return result
 		}
 	}
@@ -68,7 +68,7 @@ func (s *Subscribe) Get() proxy.ProxyList {
 func (s *Subscribe) Get2ChanWG(pc chan proxy.Proxy, wg *sync.WaitGroup) {
 	defer wg.Done()
 	nodes := s.Get()
-	log.Infoln("STATISTIC: Subscribe\tcount=%d\turl=%s", len(nodes), s.Url)
+	log.Infoln("STATISTIC: Subscribe\tcount=%-5d\turl=%s\n", len(nodes), s.Url)
 	for _, node := range nodes {
 		pc <- node
 	}
