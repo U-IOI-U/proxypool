@@ -32,7 +32,11 @@ func SubScribeHistoryCheckUrlIn(url string) bool {
 	defer subScribeHistoryLock.Unlock()
 
 	if _, ok := subScribeHistory[url]; ok {
-		return subScribeHistory[url].accessRq
+		if subScribeHistory[url].accessRq {
+			return true
+		}
+		subScribeHistory[url].accessRq = true
+		return false
 	}
 	subScribeHistory[url] = &HistoryInfo{accessRq: true, resPonSize: 0, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactor}
 	return false
@@ -58,22 +62,24 @@ func SubScribeHistoryClean() {
 	
 	if defaultZeroFail {
 		for _, value := range subScribeHistory {
-			if value.nodeNum == 0 {
-				value.zeroCount = value.zeroCount + 1
-			} else {
-				value.zeroCount = 0
-				value.zeroMultiFactor = defaultZeroMultiFactor
-			}
-	
-			if (value.zeroCount > value.zeroMultiFactor) {
-				value.zeroCount = 0
-				value.zeroMultiFactor = value.zeroMultiFactor + defaultZeroMultiFactor
-			}
-	
-			if (value.zeroCount <= defatltZeroFailNum) {
-				value.accessRq = false
-			} else {
-				value.accessRq = true
+			if value.accessRq {
+				if value.nodeNum == 0 {
+					value.zeroCount = value.zeroCount + 1
+				} else {
+					value.zeroCount = 0
+					value.zeroMultiFactor = defaultZeroMultiFactor
+				}
+		
+				if (value.zeroCount > value.zeroMultiFactor) {
+					value.zeroCount = 0
+					value.zeroMultiFactor = value.zeroMultiFactor + defaultZeroMultiFactor
+				}
+		
+				if (value.zeroCount <= defatltZeroFailNum) {
+					value.accessRq = false
+				} else {
+					value.accessRq = true
+				}
 			}
 		}
 	} else {
@@ -91,7 +97,7 @@ func SubScribeHistoryShow (mode string) string {
 		} else if strings.Compare(mode, "web") == 0 {
 			retString := make([]string, len(subScribeHistory))
 			for key, value := range subScribeHistory {
-				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
+				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
 			}
 			return strings.Join(retString, "")
 		}
