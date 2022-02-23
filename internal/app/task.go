@@ -49,7 +49,7 @@ func CrawlGo() {
 			proxies = proxies.UniqAppendProxy(p)
 		}
 	}
-	tool.SubScribeHistoryShow()
+	tool.SubScribeHistoryShow("debug")
 	proxies.NameClear()
 	proxies = proxies.Derive()
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
