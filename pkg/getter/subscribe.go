@@ -21,9 +21,7 @@ type Subscribe struct {
 	Url string
 }
 
-// Get() of Subscribe is to implement Getter interface
-func (s *Subscribe) Get() proxy.ProxyList {
-	if tool.SubScribeHistoryCheckUrlIn(s.Url) { return nil }
+func (s *Subscribe) newGet() proxy.ProxyList {
 	resp, err := tool.GetHttpClient().Get(s.Url)
 	if err != nil {
 		return nil
@@ -41,14 +39,10 @@ func (s *Subscribe) Get() proxy.ProxyList {
 			return nil
 		}
 	
-		result := ClashProxy2ProxyArray(conf.Proxy)
-		tool.SubScribeHistoryUpdateRet(s.Url, len(result))
-		return result
+		return ClashProxy2ProxyArray(conf.Proxy)
 	} else {
 		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") {
-			result := FuzzParseProxyFromString(string(body))
-			tool.SubScribeHistoryUpdateRet(s.Url, len(result))
-			return result
+			return FuzzParseProxyFromString(string(body))
 		} else {
 			nodesString, err := tool.Base64DecodeString(string(body))
 			if err != nil {
@@ -57,11 +51,23 @@ func (s *Subscribe) Get() proxy.ProxyList {
 			nodesString = strings.ReplaceAll(nodesString, "\t", "")
 		
 			nodes := strings.Split(nodesString, "\n")
-			result := StringArray2ProxyArray(nodes)
-			tool.SubScribeHistoryUpdateRet(s.Url, len(result))
-			return result
+			return StringArray2ProxyArray(nodes)
 		}
 	}
+}
+
+// Get() of Subscribe is to implement Getter interface
+func (s *Subscribe) Get() proxy.ProxyList {
+	if tool.SubScribeHistoryCheckUrlIn(s.Url) { 
+		return nil
+	}
+
+	nodes := s.newGet()
+	if (nodes != nil) {
+		tool.SubScribeHistoryUpdateRet(s.Url, len(nodes))
+	}
+	
+	return nodes
 }
 
 // Subscribe is to implement Getter interface. It gets proxies and send proxy to channel one by one
