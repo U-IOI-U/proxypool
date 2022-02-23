@@ -117,7 +117,7 @@ const (
 		"(" + ipPattern + "|(" + domainPattern + "))" + // IP 或域名
 		`(:\d{1,5})?` + // 端口
 		`(/+[a-zA-Z0-9\-\%][a-zA-Z0-9_\@\%\.\-]*)*/*` + // path
-		`(\?([a-zA-Z0-9_\-]+(=[^<\s]*&?)*)*)*` // query
+		`(\?([a-zA-Z0-9_\-]+(=[^<>"'\(\)\s]*&?)*)*)*` // query
 )
 
 func RemoveDuplication_map(arr []string) []string {
