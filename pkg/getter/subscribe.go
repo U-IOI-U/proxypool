@@ -68,7 +68,7 @@ func (s *Subscribe) Get() proxy.ProxyList {
 func (s *Subscribe) Get2ChanWG(pc chan proxy.Proxy, wg *sync.WaitGroup) {
 	defer wg.Done()
 	nodes := s.Get()
-	log.Infoln("STATISTIC: Subscribe\tcount=%-5d\turl=%s\n", len(nodes), s.Url)
+	log.Infoln("STATISTIC: Subscribe \tcount=%-5d\turl=%s\n", len(nodes), s.Url)
 	for _, node := range nodes {
 		pc <- node
 	}
