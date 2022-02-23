@@ -17,6 +17,14 @@ type HistoryInfo struct {
 var subScribeHistory = make(map[string]*HistoryInfo, 1000)
 var subScribeHistoryLock sync.Mutex
 var defaultZeroMultiFactor int = 20
+var defatltZeroFailNum int = 10
+var defaultZeroFail bool = false
+
+func SubScribeHistorySetDefaultValue(fail bool, failNum int, failMultiFactor int) {
+	defaultZeroMultiFactor = failMultiFactor
+	defatltZeroFailNum = failNum
+	defaultZeroFail = fail
+}
 
 func SubScribeHistoryCheckUrlIn(url string) bool {
 	subScribeHistoryLock.Lock()
@@ -40,22 +48,29 @@ func SubScribeHistoryClean() {
 	subScribeHistoryLock.Lock()
 	defer subScribeHistoryLock.Unlock()
 	
-	for _, value := range subScribeHistory {
-		if value.nodeNum == 0 {
-			value.zeroCount = value.zeroCount + 1
-		} else {
-			value.zeroCount = 0
+	if defaultZeroFail {
+		for _, value := range subScribeHistory {
+			if value.nodeNum == 0 {
+				value.zeroCount = value.zeroCount + 1
+			} else {
+				value.zeroCount = 0
+				value.zeroMultiFactor = defaultZeroMultiFactor
+			}
+	
+			if (value.zeroCount > value.zeroMultiFactor) {
+				value.zeroCount = 0
+				value.zeroMultiFactor = value.zeroMultiFactor + defaultZeroMultiFactor
+			}
+	
+			if (value.zeroCount <= defatltZeroFailNum) {
+				value.accessRq = false
+			} else {
+				value.accessRq = true
+			}
 		}
-
-		if (value.zeroCount > value.zeroMultiFactor) {
-			value.zeroCount = 0
-			value.zeroMultiFactor = value.zeroMultiFactor + defaultZeroMultiFactor
-		}
-
-		if (value.zeroCount <= 10) {
+	} else {
+		for _, value := range subScribeHistory {
 			value.accessRq = false
-		} else {
-			value.accessRq = true
 		}
 	}
 }

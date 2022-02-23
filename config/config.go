@@ -24,6 +24,9 @@ type ConfigOptions struct {
 	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
 	RouteShowApi          bool     `json:"route_show_api" yaml:"route_show_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
+	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
+	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
+	ZeroFailMultiFactor   int      `json:"zero_fail_multifactor" yaml:"zero_fail_multifactor"`
 	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
@@ -74,6 +77,12 @@ func Parse(path string) error {
 	if Config.TGFileApi == "" {
 		Config.TGFileApi = "https://tg.i-c-a.su/rss/"
 	}
+	if Config.ZeroFailNum == 0 {
+		Config.ZeroFailNum = 10
+	}
+	if Config.ZeroFailMultiFactor == 0 {
+		Config.ZeroFailMultiFactor = 20
+	}
 	if Config.SpeedTestInterval == 0 {
 		Config.SpeedTestInterval = 720
 	}
@@ -86,7 +95,7 @@ func Parse(path string) error {
 	if Config.ActiveMaxNumber == 0 {
 		Config.ActiveMaxNumber = 100
 	}
-
+	tool.SubScribeHistorySetDefaultValue(Config.ZeroFail, Config.ZeroFailNum, Config.ZeroFailMultiFactor)
 	// 部分配置环境变量优先
 	if domain := os.Getenv("DOMAIN"); domain != "" {
 		Config.Domain = domain
