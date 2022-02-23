@@ -68,7 +68,7 @@ func SubScribeHistoryShow (mode string) string {
 		} else if strings.Compare(mode, "web") == 0 {
 			retString := make([]string, len(subScribeHistory))
 			for key, value := range subScribeHistory {
-				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
+				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%t zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
 
 			}
 			return strings.Join(retString, "")
