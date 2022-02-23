@@ -9,6 +9,7 @@ import (
 
 type HistoryInfo struct {
 	accessRq        bool
+	resPonSize      int
 	nodeNum         int
 	zeroCount       int
 	zeroMultiFactor int
@@ -33,7 +34,7 @@ func SubScribeHistoryCheckUrlIn(url string) bool {
 	if _, ok := subScribeHistory[url]; ok {
 		return subScribeHistory[url].accessRq
 	}
-	subScribeHistory[url] = &HistoryInfo{accessRq: true, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactor}
+	subScribeHistory[url] = &HistoryInfo{accessRq: true, resPonSize: 0, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactor}
 	return false
 }
 
@@ -42,6 +43,13 @@ func SubScribeHistoryUpdateRet(url string, num int) {
 	defer subScribeHistoryLock.Unlock()
 
 	subScribeHistory[url].nodeNum = num
+}
+
+func SubScribeHistoryUpdateResponseSize(url string, num int) {
+	subScribeHistoryLock.Lock()
+	defer subScribeHistoryLock.Unlock()
+
+	subScribeHistory[url].resPonSize = num
 }
 
 func SubScribeHistoryClean() {
@@ -83,8 +91,7 @@ func SubScribeHistoryShow (mode string) string {
 		} else if strings.Compare(mode, "web") == 0 {
 			retString := make([]string, len(subScribeHistory))
 			for key, value := range subScribeHistory {
-				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%t zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
-
+				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
 			}
 			return strings.Join(retString, "")
 		}
