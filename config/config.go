@@ -26,6 +26,7 @@ type ConfigOptions struct {
 	CFEmail               string   `json:"cf_email" yaml:"cf_email"`
 	CFKey                 string   `json:"cf_key" yaml:"cf_key"`
 	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
+	RouteShowApi          bool     `json:"route_show_api" yaml:"route_show_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
 	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`

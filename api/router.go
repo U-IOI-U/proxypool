@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"github.com/ssrlive/proxypool/pkg/tool"
 	"github.com/ssrlive/proxypool/log"
 	"golang.org/x/exp/slices"
 
@@ -289,6 +289,13 @@ func setupRouter() {
 			c.String(500, "id out of range")
 		}
 		c.String(200, proxies[id].Link())
+	})
+	router.GET("/show", func(c *gin.Context) {
+		if config.Config.RouteShowApi {
+			c.String(200, tool.SubScribeHistoryShow("web"))
+		} else {
+			c.String(200, "API is not open!")
+		}
 	})
 }
 
