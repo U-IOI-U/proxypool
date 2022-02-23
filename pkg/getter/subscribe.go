@@ -30,7 +30,7 @@ func (s *Subscribe) newGet() proxy.ProxyList {
 	if err != nil {
 		return nil
 	}
-
+	tool.SubScribeHistoryUpdateResponseSize(s.Url, len(string(body)))
 	if strings.Contains(string(body), "proxies:") {
 		conf := config{}
 		err = yaml.Unmarshal(body, &conf)
@@ -60,6 +60,8 @@ func (s *Subscribe) Get() proxy.ProxyList {
 	if tool.SubScribeHistoryCheckUrlIn(s.Url) { 
 		return nil
 	}
+	tool.SubScribeHistoryUpdateRet(s.Url, 0)
+	tool.SubScribeHistoryUpdateResponseSize(s.Url, 0)
 
 	nodes := s.newGet()
 	if (nodes != nil) {
