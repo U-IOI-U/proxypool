@@ -45,7 +45,7 @@ type ConfigOptions struct {
 }
 
 // Config 配置
-var Config ConfigOptions
+var Config *ConfigOptions // 多线程下访问Parse函数可能会造成Unmarshal函数崩溃，改成指针赋值
 
 func (config ConfigOptions) HostUrl() string {
 	url := config.Domain
@@ -85,65 +85,65 @@ func Parse() error {
 	if err != nil {
 		return err
 	}
-	Config = ConfigOptions{}
-	err = yaml.Unmarshal(fileData, &Config)
+	newConfig := ConfigOptions{}
+	err = yaml.Unmarshal(fileData, &newConfig)
 	if err != nil {
 		return err
 	}
 
 	// set default
-	if Config.SpeedConnection <= 0 {
-		Config.SpeedConnection = 5
+	if newConfig.SpeedConnection <= 0 {
+		newConfig.SpeedConnection = 5
 	}
-	if Config.SpeedTimeout <= 0 {
-		Config.SpeedTimeout = 10
+	if newConfig.SpeedTimeout <= 0 {
+		newConfig.SpeedTimeout = 10
 	}
 
 	// set default
-	if Config.HealthCheckConnection <= 0 {
-		Config.HealthCheckConnection = 500
+	if newConfig.HealthCheckConnection <= 0 {
+		newConfig.HealthCheckConnection = 500
 	}
-	if Config.Port == "" {
-		Config.Port = "12580"
+	if newConfig.Port == "" {
+		newConfig.Port = "12580"
 	}
-	if Config.CrawlInterval == 0 {
-		Config.CrawlInterval = 60
+	if newConfig.CrawlInterval == 0 {
+		newConfig.CrawlInterval = 60
 	}
-	if Config.TGFileApi == "" {
-		Config.TGFileApi = "https://tg.i-c-a.su/rss/"
+	if newConfig.TGFileApi == "" {
+		newConfig.TGFileApi = "https://tg.i-c-a.su/rss/"
 	}
-	if Config.ZeroFailNum == 0 {
-		Config.ZeroFailNum = 10
+	if newConfig.ZeroFailNum == 0 {
+		newConfig.ZeroFailNum = 10
 	}
-	if Config.ZeroFailMultiFactor == 0 {
-		Config.ZeroFailMultiFactor = 20
+	if newConfig.ZeroFailMultiFactor == 0 {
+		newConfig.ZeroFailMultiFactor = 20
 	}
-	if Config.SpeedTestInterval == 0 {
-		Config.SpeedTestInterval = 720
+	if newConfig.SpeedTestInterval == 0 {
+		newConfig.SpeedTestInterval = 720
 	}
-	if Config.ActiveInterval == 0 {
-		Config.ActiveInterval = 60
+	if newConfig.ActiveInterval == 0 {
+		newConfig.ActiveInterval = 60
 	}
-	if Config.ActiveFrequency == 0 {
-		Config.ActiveFrequency = 100
+	if newConfig.ActiveFrequency == 0 {
+		newConfig.ActiveFrequency = 100
 	}
-	if Config.ActiveMaxNumber == 0 {
-		Config.ActiveMaxNumber = 100
+	if newConfig.ActiveMaxNumber == 0 {
+		newConfig.ActiveMaxNumber = 100
 	}
-	tool.SubScribeHistorySetDefaultValue(Config.ZeroFail, Config.ZeroFailNum, Config.ZeroFailMultiFactor)
+	tool.SubScribeHistorySetDefaultValue(newConfig.ZeroFail, newConfig.ZeroFailNum, newConfig.ZeroFailMultiFactor)
 	// 部分配置环境变量优先
 	if domain := os.Getenv("DOMAIN"); domain != "" {
-		Config.Domain = domain
+		newConfig.Domain = domain
 	}
 	if cfEmail := os.Getenv("CF_API_EMAIL"); cfEmail != "" {
-		Config.CFEmail = cfEmail
+		newConfig.CFEmail = cfEmail
 	}
 	if cfKey := os.Getenv("CF_API_KEY"); cfKey != "" {
-		Config.CFKey = cfKey
+		newConfig.CFKey = cfKey
 	}
-	s, _ := json.Marshal(Config)
+	s, _ := json.Marshal(newConfig)
 	log.Debugln("Config options: %s", string(s))
-
+	Config = &newConfig
 	return nil
 }
 
