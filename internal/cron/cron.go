@@ -31,50 +31,58 @@ func crawlTask() {
 }
 
 func speedTestTask() {
-	log.Infoln("Doing speed test task...")
 	err := config.Parse()
 	if err != nil {
 		log.Errorln("[cron.go] config parse error: %s", err)
 	}
-	pl := cache.GetProxies("proxies")
 
-	app.SpeedTest(pl)
-	cache.SetString("clashproxies", provider.Clash{
-		Base: provider.Base{
-			Proxies: &pl,
-		},
-	}.Provide()) // update static string provider
-	cache.SetString("surgeproxies", provider.Surge{
-		Base: provider.Base{
-			Proxies: &pl,
-		},
-	}.Provide())
+	if config.Config.SpeedTest {
+		log.Infoln("Doing speed test task...")
+
+		pl := cache.GetProxies("proxies")
+
+		app.SpeedTest(pl)
+		cache.SetString("clashproxies", provider.Clash{
+			Base: provider.Base{
+				Proxies: &pl,
+			},
+		}.Provide()) // update static string provider
+		cache.SetString("surgeproxies", provider.Surge{
+			Base: provider.Base{
+				Proxies: &pl,
+			},
+		}.Provide())
+	}
 	runtime.GC()
 }
 
 func frequentSpeedTestTask() {
-	log.Infoln("Doing speed test task for active proxies...")
 	err := config.Parse()
 	if err != nil {
 		log.Errorln("[cron.go] config parse error: %s", err)
 	}
-	pl_all := cache.GetProxies("proxies")
-	pl := healthcheck.ProxyStats.ReqCountThan(config.Config.ActiveFrequency, pl_all, true)
-	if len(pl) > int(config.Config.ActiveMaxNumber) {
-		pl = healthcheck.ProxyStats.SortProxiesBySpeed(pl)[:config.Config.ActiveMaxNumber]
-	}
-	log.Infoln("Active proxies count: %d", len(pl))
 
-	app.SpeedTest(pl)
-	cache.SetString("clashproxies", provider.Clash{
-		Base: provider.Base{
-			Proxies: &pl_all,
-		},
-	}.Provide()) // update static string provider
-	cache.SetString("surgeproxies", provider.Surge{
-		Base: provider.Base{
-			Proxies: &pl_all,
-		},
-	}.Provide())
+	if (config.Config.SpeedTest) {
+		log.Infoln("Doing speed test task for active proxies...")
+
+		pl_all := cache.GetProxies("proxies")
+		pl := healthcheck.ProxyStats.ReqCountThan(config.Config.ActiveFrequency, pl_all, true)
+		if len(pl) > int(config.Config.ActiveMaxNumber) {
+			pl = healthcheck.ProxyStats.SortProxiesBySpeed(pl)[:config.Config.ActiveMaxNumber]
+		}
+		log.Infoln("Active proxies count: %d", len(pl))
+	
+		app.SpeedTest(pl)
+		cache.SetString("clashproxies", provider.Clash{
+			Base: provider.Base{
+				Proxies: &pl_all,
+			},
+		}.Provide()) // update static string provider
+		cache.SetString("surgeproxies", provider.Surge{
+			Base: provider.Base{
+				Proxies: &pl_all,
+			},
+		}.Provide())
+	}
 	runtime.GC()
 }
