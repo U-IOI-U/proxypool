@@ -53,6 +53,9 @@ func initGetters(sourceFiles []string) {
 			if source.Options == nil {
 				continue
 			}
+			if isSourceInBlackList(source) {
+				continue
+			}
 			g, err := getter.NewGetter(source.Type, source.Options)
 			if err == nil && g != nil {
 				Getters = append(Getters, g)
@@ -62,4 +65,17 @@ func initGetters(sourceFiles []string) {
 	}
 	log.Infoln("Getter count: %d", len(Getters))
 	cache.GettersCount = len(Getters)
+}
+
+func isSourceInBlackList(source config.Source) bool {
+	for _, bl := range config.Config.GetterBlackList {
+		if (bl.Type == source.Type) {
+			if (bl.Type == "tgchannel") && (bl.Options["channel"] == source.Options["channel"]) {
+				return true
+			} else if bl.Options["url"] == source.Options["url"] {
+				return true
+			}
+		}
+	}
+	return false
 }
