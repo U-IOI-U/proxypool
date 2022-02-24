@@ -112,8 +112,11 @@ func CrawlGo() {
 	// 可用节点存储
 	cache.SetProxies("proxies", proxies)
 	cache.UsefullProxiesCount = proxies.Len()
-	database.SaveProxyList(proxies)
-	database.ClearOldItems()
+	// 后台处理数据库操作
+	go func () {
+		database.SaveProxyList(proxies)
+		database.ClearOldItems()
+	}()
 
 	log.Infoln("Usablility checking done. Open %s to check", C.Config.Domain+":"+C.Config.Port)
 
