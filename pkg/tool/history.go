@@ -28,39 +28,42 @@ func SubScribeHistorySetDefaultValue(fail bool, failNum int, failMultiFactor int
 }
 
 func SubScribeHistoryCheckUrlIn(url string) bool {
-	subScribeHistoryLock.Lock()
-	defer subScribeHistoryLock.Unlock()
-
-	if _, ok := subScribeHistory[url]; ok {
-		if subScribeHistory[url].accessRq {
-			return true
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		if _, ok := subScribeHistory[url]; ok {
+			if subScribeHistory[url].accessRq {
+				subScribeHistoryLock.Unlock()
+				return true
+			}
+			subScribeHistory[url].accessRq = true
+			subScribeHistoryLock.Unlock()
+			return false
 		}
-		subScribeHistory[url].accessRq = true
-		return false
+		subScribeHistory[url] = &HistoryInfo{accessRq: true, resPonSize: 0, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactor}
+		subScribeHistoryLock.Unlock()
 	}
-	subScribeHistory[url] = &HistoryInfo{accessRq: true, resPonSize: 0, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactor}
 	return false
 }
 
 func SubScribeHistoryUpdateRet(url string, num int) {
-	subScribeHistoryLock.Lock()
-	defer subScribeHistoryLock.Unlock()
-
-	subScribeHistory[url].nodeNum = num
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		subScribeHistory[url].nodeNum = num
+		subScribeHistoryLock.Unlock()
+	}
 }
 
 func SubScribeHistoryUpdateResponseSize(url string, num int) {
-	subScribeHistoryLock.Lock()
-	defer subScribeHistoryLock.Unlock()
-
-	subScribeHistory[url].resPonSize = num
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		subScribeHistory[url].resPonSize = num
+		subScribeHistoryLock.Unlock()
+	}
 }
 
 func SubScribeHistoryClean() {
-	subScribeHistoryLock.Lock()
-	defer subScribeHistoryLock.Unlock()
-	
 	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
 		for _, value := range subScribeHistory {
 			if value.accessRq {
 				if value.nodeNum == 0 {
@@ -82,10 +85,7 @@ func SubScribeHistoryClean() {
 				}
 			}
 		}
-	} else {
-		for _, value := range subScribeHistory {
-			value.accessRq = false
-		}
+		subScribeHistoryLock.Unlock()
 	}
 }
 
