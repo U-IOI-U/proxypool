@@ -29,6 +29,7 @@ func InitConfigAndGetters(path string) (err error) {
 
 func initGetters(sourceFiles []string) {
 	Getters = make([]getter.Getter, 0)
+	GettersList := map[string]struct{}{}
 	for _, path := range sourceFiles {
 		data, err := config.ReadFile(path)
 		if err != nil {
@@ -42,7 +43,7 @@ func initGetters(sourceFiles []string) {
 			continue
 		}
 		for _, source := range sourceList {
-			if isSourceInBlackList(source) {
+			if isSourceInBlackList(source) || isGetterExist(source, &GettersList) {
 				continue
 			}
 			g, err := getter.NewGetter(source.Type, source.Options)
@@ -75,6 +76,22 @@ func isSourceInBlackList(source config.Source) bool {
 				}
 			}
 		}
+	}
+	return false
+}
+
+func isGetterExist(source config.Source, getterList *map[string]struct{}) bool {
+	if channel, ok := source.Options["channel"]; ok {
+		if _, ok := (*getterList)[channel.(string) + source.Type]; ok {
+			return true
+		}
+		(*getterList)[channel.(string) + source.Type] = struct{}{}
+	}
+	if url, ok := source.Options["url"]; ok {
+		if _, ok := (*getterList)[url.(string) + source.Type]; ok {
+			return true
+		}
+		(*getterList)[url.(string) + source.Type] = struct{}{}
 	}
 	return false
 }
