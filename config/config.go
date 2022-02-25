@@ -24,7 +24,7 @@ type ConfigOptions struct {
 	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
 	RouteShowApi          bool     `json:"route_show_api" yaml:"route_show_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
-	GetterBlackList       []Source `json:"getter_black_list" yaml:"getter_black_list"`
+	GetterBlackList       map[string]map[string]interface{} `json:"getter_black_list" yaml:"getter_black_list"`
 	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
 	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
 	ZeroFailMultiFactor   int      `json:"zero_fail_multifactor" yaml:"zero_fail_multifactor"`

@@ -57,12 +57,22 @@ func initGetters(sourceFiles []string) {
 }
 
 func isSourceInBlackList(source config.Source) bool {
-	for _, bl := range config.Config.GetterBlackList {
-		if (bl.Type == source.Type) {
-			if (bl.Type == "tgchannel") && (bl.Options["channel"] == source.Options["channel"]) {
-				return true
-			} else if bl.Options["url"] == source.Options["url"] {
-				return true
+	if urls, ok := config.Config.GetterBlackList[source.Type]; ok {
+		if _, ok := urls["-"]; ok { // "-"代表屏蔽该种类型
+			return true
+		}
+		if channel, ok := source.Options["channel"]; ok {
+			if channel.(string) != "" {
+				if _, ok := urls[channel.(string)]; ok {
+					return true
+				}
+			}
+		}
+		if url, ok := source.Options["url"]; ok {
+			if url.(string) != "" {
+				if _, ok := urls[url.(string)]; ok {
+					return true
+				}
 			}
 		}
 	}
