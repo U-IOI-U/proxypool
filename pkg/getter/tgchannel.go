@@ -103,7 +103,13 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 					elements := strings.Split(s, "\"")
 					for _, e := range elements {
 						if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
-							subHtmls = append(subHtmls, e)
+							if !CheckSubscribeUrlValid(e) {
+								continue
+							}
+							newResult := (&Subscribe{Url: e}).Get() // fileapi请求受限，不能并发处理
+							if len(newResult) > 0 {
+								result = append(result, newResult...)
+							}
 						}
 					}
 				}
@@ -113,22 +119,9 @@ func (g *TGChannelGetter) Get() proxy.ProxyList {
 	
 	// 处理订阅链接
 	subUrls := FindAllSubscribeUrl(strings.Join(subHtmls, " "), -1)
-	for _, url := range subUrls {
-		// 屏蔽掉无效的链接
-		if strings.HasPrefix(url, "https://t.me") {
-			continue
-		}
-		// result = append(result, (&Subscribe{Url: url}).Get()...)
-		newResult := (&Subscribe{Url: url}).Get()
-		newResultLen := len(newResult)
-		if newResultLen > 0 {
-			result = append(result, newResult...)
-			// 打印有效的订阅链接，或许可以发现长效的订阅
-			// log.Debugln("\tSTATISTIC: TGchannel Subscribe\tcount=%-5d url=%s\n", newResultLen, url)
-		} else {
-			// 打印无效的链接，调试用
-			// log.Debugln("\tSTATISTIC: TGchannel Subscribe url=%s\n", url)
-		}
+	newResult := (&Subscribe{}).QueueGet(subUrls)
+	if len(newResult) > 0 {
+		result = append(result, newResult...)
 	}
 
 	return result

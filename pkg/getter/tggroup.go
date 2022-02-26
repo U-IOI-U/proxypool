@@ -70,6 +70,24 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 			break
 		}
 		subHtmls = append(subHtmls, string(body))
+		// 先处理文件
+		items := strings.Split(string(body), "\n")
+		for _, s := range items {
+			if strings.Contains(s, "enclosure url") { // get to xml node
+				elements := strings.Split(s, "\"")
+				for _, e := range elements {
+					if strings.Contains(e, "https://") || strings.Contains(e, "http://") { // http存在公网传输时内容泄露的风险，仅用于内网自行搭建服务器
+						if !CheckSubscribeUrlValid(e) {
+							continue
+						}
+						newResult := (&Subscribe{Url: e}).Get() // fileapi请求受限，不能并发处理
+						if len(newResult) > 0 {
+							result = append(result, newResult...)
+						}
+					}
+				}
+			}
+		}
 	}
 	// 没有获取到网页
 	if len(subHtmls) == 0 {
@@ -82,24 +100,11 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 
 	// 抓取到http链接，有可能是订阅链接或其他链接，无论如何试一下
 	subUrls := FindAllSubscribeUrl(html.UnescapeString(allHtmls), -1)
-	for _, url := range subUrls {
-		// 屏蔽掉无效的链接
-		if strings.HasPrefix(url, "https://t.me") {
-			continue
-		}
-
-		newResult := (&Subscribe{Url: url}).Get()
-		newResultLen := len(newResult)
-		if newResultLen > 0 {
-			result = append(result, newResult...)
-			// 打印有效的订阅链接，或许可以发现长效的订阅
-			// log.Debugln("\tSTATISTIC: TGgroup Subscribe\tcount=%-5d url=%s\n", newResultLen, url)
-		} else {
-			// 打印无效的链接，调试用
-			// log.Debugln("\tSTATISTIC: TGgroup Subscribe url=%s\n", url)
-		}
+	newResult := (&Subscribe{}).QueueGet(subUrls)
+	if len(newResult) > 0 {
+		result = append(result, newResult...)
 	}
-
+	
 	return result
 }
 
