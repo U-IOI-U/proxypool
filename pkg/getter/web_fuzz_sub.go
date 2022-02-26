@@ -29,15 +29,7 @@ func (w *WebFuzzSub) Get() proxy.ProxyList {
 	}
 	text := string(body)
 	subUrls := FindAllSubscribeUrl(text, -1)
-	result := make(proxy.ProxyList, 0)
-	for _, url := range subUrls {
-		newResult := (&Subscribe{Url: url}).Get()
-		// newResultLen := len(newResult)
-		// if newResultLen == 0 {
-		// 	log.Debugln("\tSTATISTIC: WebFuzzSub\tcount=%-5d sub url=%s\n", newResultLen, url)
-		// }
-		result = result.UniqAppendProxyList(newResult)
-	}
+	result := (&Subscribe{}).QueueGet(subUrls)
 	return result
 }
 
