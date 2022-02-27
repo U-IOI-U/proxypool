@@ -67,12 +67,46 @@ func CrawlGo(pGetters PGetterList) {
 		wg.Wait()
 		close(pc)
 	}() // Note: 为何并发？可以一边抓取一边读取而非抓完再读
-	// for 用于阻塞goroutine
-	for p := range pc { // Note: pc关闭后不能发送数据可以读取剩余数据
-		if p != nil {
-			proxies = proxies.UniqAppendProxy(p)
+
+	var proxiesNum int = 0
+	sTime := time.Now()
+	if C.Config.ProxiesMergeMode == 1 {
+		proxiesMap := make(map[string]struct{}, len(proxies))
+		for _, value := range proxies {
+			if _, ok := proxiesMap[value.Identifier()]; !ok {
+				proxiesMap[value.Identifier()] = struct{}{}
+			}
+		}
+	
+		for p := range pc {
+			if p != nil {
+				proxiesNum = proxiesNum + 1
+				if _, ok := proxiesMap[p.Identifier()]; !ok {
+					proxies = append(proxies, p)
+					proxiesMap[p.Identifier()] = struct{}{}
+				}
+			}
+		}
+	} else if C.Config.ProxiesMergeMode == 2 {
+		for p := range pc {
+			if p != nil {
+				proxiesNum = proxiesNum + 1
+				proxies = append(proxies, p)
+			}
+		}
+		proxies = proxies.Deduplication()
+	} else {
+		// for 用于阻塞goroutine
+		for p := range pc { // Note: pc关闭后不能发送数据可以读取剩余数据
+			if p != nil {
+				proxiesNum = proxiesNum + 1
+				proxies = proxies.UniqAppendProxy(p)
+			}
 		}
 	}
+	cost := time.Since(sTime)
+	log.Debugln("CrawlGo: MergeMode %d merge %d proxy used %s!", C.Config.ProxiesMergeMode, proxiesNum, cost)
+
 	tool.SubScribeHistoryShow("debug")
 	proxies.NameClear()
 	proxies = proxies.Derive()
@@ -130,6 +164,7 @@ func CrawlGo(pGetters PGetterList) {
 			}
 		}
 	}
+
 
 	proxies.NameAddIndex()
 
