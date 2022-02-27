@@ -154,20 +154,21 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("Proxy rename DONE!")
 
 	// Relay check and rename
-	healthcheck.RelayCheck(proxies)
-	for i := range proxies {
-		if s, ok := healthcheck.ProxyStats.Find(proxies[i]); ok {
-			if s.Relay {
-				_, c, e := geoIp.GeoIpDB.Find(s.OutIp)
-				if e == nil {
-					proxies[i].SetName(fmt.Sprintf("Relay_%s-%s", proxies[i].BaseInfo().Name, c))
+	if C.Config.RelayTest {
+		healthcheck.RelayCheck(proxies)
+		for i := range proxies {
+			if s, ok := healthcheck.ProxyStats.Find(proxies[i]); ok {
+				if s.Relay {
+					_, c, e := geoIp.GeoIpDB.Find(s.OutIp)
+					if e == nil {
+						proxies[i].SetName(fmt.Sprintf("Relay_%s-%s", proxies[i].BaseInfo().Name, c))
+					}
+				} else if s.Pool {
+					proxies[i].SetName(fmt.Sprintf("Pool_%s", proxies[i].BaseInfo().Name))
 				}
-			} else if s.Pool {
-				proxies[i].SetName(fmt.Sprintf("Pool_%s", proxies[i].BaseInfo().Name))
 			}
 		}
 	}
-
 
 	proxies.NameAddIndex()
 
