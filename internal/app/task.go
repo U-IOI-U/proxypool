@@ -18,10 +18,34 @@ import (
 
 var location, _ = time.LoadLocation("Asia/Shanghai")
 
-func CrawlGo() {
+var isCrawlGoRunning bool = false
+var crawlGoSync sync.Mutex
+
+func CrawlGoWithSync() {
+	crawlGoSync.Lock()
+	if isCrawlGoRunning == true {
+		crawlGoSync.Unlock()
+		log.Debugln("CrawlGo: is Running!")
+		return
+	}
+	isCrawlGoRunning = true
+	crawlGoSync.Unlock()
+
+	sTime := time.Now()
+
+	CrawlGo(Getters)
+
+	cost := time.Since(sTime)
+	log.Debugln("CrawlGo: is ended after %s!", cost)
+
+	// 运行到这里的只有一个线程,不用加锁了
+	isCrawlGoRunning = false 
+}
+
+func CrawlGo(pGetters PGetterList) {
 	wg := &sync.WaitGroup{}
 	var pc = make(chan proxy.Proxy)
-	for _, g := range Getters {
+	for _, g := range *pGetters {
 		wg.Add(1)
 		go g.Get2ChanWG(pc, wg)
 	}

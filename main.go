@@ -59,7 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 	log.Infoln("Do the first crawl...")
-	go app.CrawlGo() // 抓取主程序
+	go app.CrawlGoWithSync() // 抓取主程序
 	go cron.Cron()   // 定时运行
 	api.Run()        // Web Serve
 }
