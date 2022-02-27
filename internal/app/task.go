@@ -49,16 +49,28 @@ func CrawlGo(pGetters PGetterList) {
 		go g.Get2ChanWG(pc, wg)
 	}
 	proxies := cache.GetProxies("allproxies")
-	dbProxies := database.GetAllProxies()
-	// Show last time result when launch
-	if proxies == nil && dbProxies != nil {
-		cache.SetProxies("proxies", dbProxies)
-		cache.LastCrawlTime = "抓取中，已载入上次数据库数据"
-		log.Infoln("Database: loaded")
+	// dbProxies := database.GetAllProxies()
+	// // Show last time result when launch
+	// if proxies == nil && dbProxies != nil {
+	// 	cache.SetProxies("proxies", dbProxies)
+	// 	cache.LastCrawlTime = "抓取中，已载入上次数据库数据"
+	// 	log.Infoln("Database: loaded")
+	// }
+	// if dbProxies != nil {
+	// 	proxies = dbProxies.UniqAppendProxyList(proxies)
+	// }
+	if proxies == nil {
+		// Show last time result when launch
+		dbProxies := database.GetAllProxies()
+		if dbProxies != nil {
+			cache.SetProxies("proxies", dbProxies)
+			cache.LastCrawlTime = "抓取中，已载入上次数据库数据"
+			log.Infoln("Database: loaded")
+
+			proxies = dbProxies.UniqAppendProxyList(proxies)
+		}
 	}
-	if dbProxies != nil {
-		proxies = dbProxies.UniqAppendProxyList(proxies)
-	}
+
 	if proxies == nil {
 		proxies = make(proxy.ProxyList, 0)
 	}
