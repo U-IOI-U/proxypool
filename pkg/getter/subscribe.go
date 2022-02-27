@@ -82,10 +82,10 @@ func (s *Subscribe) QueueGet(urls []string) proxy.ProxyList {
 
 		for q := range qc {
 			if q != nil {
-				proxies = proxies.UniqAppendProxy(q)
+				proxies = append(proxies, q)
 			}
 		}
-		return proxies
+		return proxies.Deduplication()
 	}
 
 	return nil

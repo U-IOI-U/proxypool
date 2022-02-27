@@ -29,6 +29,7 @@ type ConfigOptions struct {
 	RouteShowApi          bool     `json:"route_show_api" yaml:"route_show_api"`
 	RouteUpdateApi        bool     `json:"route_update_api" yaml:"route_update_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
+	ProxiesMergeMode      int      `json:"proxies_merge_mode" yaml:"proxies_merge_mode"`
 	GetterBlackList       map[string]map[string]interface{} `json:"getter_black_list" yaml:"getter_black_list"`
 	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
 	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
