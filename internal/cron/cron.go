@@ -24,7 +24,7 @@ func crawlTask() {
 	if err != nil {
 		log.Errorln("[cron.go] config parse error: %s", err)
 	}
-	app.CrawlGo()
+	app.CrawlGoWithSync()
 	app.Getters = nil
 	runtime.GC()
 }

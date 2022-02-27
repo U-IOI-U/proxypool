@@ -12,7 +12,9 @@ import (
 	"github.com/ssrlive/proxypool/pkg/getter"
 )
 
-var Getters = make([]getter.Getter, 0)
+// var Getters = make([]getter.Getter, 0)
+type PGetterList *[]getter.Getter
+var Getters PGetterList = nil
 
 func InitConfigAndGetters(path string) (err error) {
 	err = config.Parse(path)
@@ -28,7 +30,7 @@ func InitConfigAndGetters(path string) (err error) {
 }
 
 func initGetters(sourceFiles []string) {
-	Getters = make([]getter.Getter, 0)
+	newGetters := make([]getter.Getter, 0)
 	GettersList := map[string]struct{}{}
 	for _, path := range sourceFiles {
 		data, err := config.ReadFile(path)
@@ -48,13 +50,14 @@ func initGetters(sourceFiles []string) {
 			}
 			g, err := getter.NewGetter(source.Type, source.Options)
 			if err == nil && g != nil {
-				Getters = append(Getters, g)
+				newGetters = append(newGetters, g)
 				log.Debugln("init getter: %s %v", source.Type, source.Options)
 			}
 		}
 	}
-	log.Infoln("Getter count: %d", len(Getters))
-	cache.GettersCount = len(Getters)
+	log.Infoln("Getter count: %d", len(newGetters))
+	cache.GettersCount = len(newGetters)
+	Getters = &newGetters
 }
 
 func isSourceInBlackList(source config.Source) bool {
