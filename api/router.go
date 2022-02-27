@@ -20,6 +20,7 @@ import (
 	"github.com/ssrlive/proxypool/config"
 	appcache "github.com/ssrlive/proxypool/internal/cache"
 	"github.com/ssrlive/proxypool/pkg/provider"
+	"github.com/ssrlive/proxypool/internal/app"
 )
 
 const version = "v0.7.12"
@@ -293,6 +294,21 @@ func setupRouter() {
 	router.GET("/show", func(c *gin.Context) {
 		if config.Config.RouteShowApi {
 			c.String(200, tool.SubScribeHistoryShow("web"))
+		} else {
+			c.String(200, "API is not open!")
+		}
+	})
+	router.GET("/update", func(c *gin.Context) {
+		if config.Config.RouteUpdateApi {
+			go func () {
+				err := app.InitConfigAndGetters("")
+				if err != nil {
+					log.Errorln("[cron.go] config parse error: %s", err)
+				}
+				app.CrawlGoWithSync()
+				app.Getters = nil
+			}()
+			c.String(200, "Done!")
 		} else {
 			c.String(200, "API is not open!")
 		}
