@@ -34,6 +34,7 @@ type ConfigOptions struct {
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
 	HealthCheckConnection int      `json:"healthcheck-connection" yaml:"healthcheck-connection"`
+	RelayTest             bool     `json:"relaytest" yaml:"relaytest"`
 	SpeedTest             bool     `json:"speedtest" yaml:"speedtest"`
 	SpeedTestInterval     uint64   `json:"speedtest-interval" yaml:"speedtest-interval"`
 	SpeedTimeout          int      `json:"speed-timeout" yaml:"speed-timeout"`
