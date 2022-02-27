@@ -17,6 +17,7 @@ import (
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
+	"github.com/ssrlive/proxypool/internal/app"
 )
 
 const version = "v0.7.4"
@@ -293,6 +294,21 @@ func setupRouter() {
 	router.GET("/show", func(c *gin.Context) {
 		if config.Config.RouteShowApi {
 			c.String(200, tool.SubScribeHistoryShow("web"))
+		} else {
+			c.String(200, "API is not open!")
+		}
+	})
+	router.GET("/update", func(c *gin.Context) {
+		if config.Config.RouteUpdateApi {
+			go func () {
+				err := app.InitConfigAndGetters("")
+				if err != nil {
+					log.Errorln("[cron.go] config parse error: %s", err)
+				}
+				app.CrawlGoWithSync()
+				app.Getters = nil
+			}()
+			c.String(200, "Done!")
 		} else {
 			c.String(200, "API is not open!")
 		}
