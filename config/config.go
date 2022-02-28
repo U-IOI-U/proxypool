@@ -30,12 +30,13 @@ type ConfigOptions struct {
 	RouteUpdateApi        bool     `json:"route_update_api" yaml:"route_update_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
 	ProxiesMergeMode      int      `json:"proxies_merge_mode" yaml:"proxies_merge_mode"`
-	GetterBlackList       map[string]map[string]interface{} `json:"getter_black_list" yaml:"getter_black_list"`
+	GetterBlackList       map[string]map[string]interface{} `json:"getter_blacklist" yaml:"getter_blacklist"`
 	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
 	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
 	ZeroFailMultiFactor   int      `json:"zero_fail_multifactor" yaml:"zero_fail_multifactor"`
 	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
+	SubUrlsBlackList      map[string]interface{} `json:"suburl-blacklist" yaml:"suburl-blacklist"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
 	HealthCheckConnection int      `json:"healthcheck-connection" yaml:"healthcheck-connection"`
 	RelayTest             bool     `json:"relaytest" yaml:"relaytest"`
