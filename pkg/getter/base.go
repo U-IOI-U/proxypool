@@ -163,6 +163,11 @@ func CheckSubscribeUrlValid(url string) bool {
 				}
 			}
 		}
+		if len(C.Config.SubUrlsBlackList) > 0 {
+			if _, ok := C.Config.SubUrlsBlackList[url]; ok {
+				return false
+			}
+		}
 		return true
 	}
 	return false
