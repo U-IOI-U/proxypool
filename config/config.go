@@ -34,6 +34,7 @@ type ConfigOptions struct {
 	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
 	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
 	ZeroFailMultiFactor   int      `json:"zero_fail_multifactor" yaml:"zero_fail_multifactor"`
+	ZeroFailMultiFactorMax int     `json:"zero_fail_multifactor_max" yaml:"zero_fail_multifactor_max"`
 	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
 	SubUrlsBlackList      map[string]interface{} `json:"suburl-blacklist" yaml:"suburl-blacklist"`
@@ -135,7 +136,7 @@ func Parse() error {
 	if newConfig.ActiveMaxNumber == 0 {
 		newConfig.ActiveMaxNumber = 100
 	}
-	tool.SubScribeHistorySetDefaultValue(newConfig.ZeroFail, newConfig.ZeroFailNum, newConfig.ZeroFailMultiFactor)
+	tool.SubScribeHistorySetDefaultValue(newConfig.ZeroFail, newConfig.ZeroFailNum, newConfig.ZeroFailMultiFactor, newConfig.ZeroFailMultiFactorMax)
 	// 部分配置环境变量优先
 	if domain := os.Getenv("DOMAIN"); domain != "" {
 		newConfig.Domain = domain

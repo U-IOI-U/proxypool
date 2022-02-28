@@ -80,7 +80,7 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 						if !CheckSubscribeUrlValid(e) {
 							continue
 						}
-						newResult := (&Subscribe{Url: e}).Get() // fileapi请求受限，不能并发处理
+						newResult := (&Subscribe{Url: e}).GetAndBlock() // fileapi请求受限，不能并发处理
 						if len(newResult) > 0 {
 							result = append(result, newResult...)
 						}

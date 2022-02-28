@@ -17,11 +17,13 @@ type HistoryInfo struct {
 
 var subScribeHistory = make(map[string]*HistoryInfo, 1000)
 var subScribeHistoryLock sync.Mutex
+var defaultZeroMultiFactorMax int = 9999
 var defaultZeroMultiFactor int = 20
 var defatltZeroFailNum int = 10
 var defaultZeroFail bool = false
 
-func SubScribeHistorySetDefaultValue(fail bool, failNum int, failMultiFactor int) {
+func SubScribeHistorySetDefaultValue(fail bool, failNum int, failMultiFactor int, failMultiFactorMax int) {
+	defaultZeroMultiFactorMax = failMultiFactorMax
 	defaultZeroMultiFactor = failMultiFactor
 	defatltZeroFailNum = failNum
 	defaultZeroFail = fail
@@ -53,6 +55,14 @@ func SubScribeHistoryUpdateRet(url string, num int) {
 	}
 }
 
+func SubScribeHistoryBlock(url string) {
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		subScribeHistory[url].zeroMultiFactor = defaultZeroMultiFactorMax
+		subScribeHistoryLock.Unlock()
+	}
+}
+
 func SubScribeHistoryUpdateResponseSize(url string, num int) {
 	if defaultZeroFail {
 		subScribeHistoryLock.Lock()
@@ -65,7 +75,7 @@ func SubScribeHistoryClean() {
 	if defaultZeroFail {
 		subScribeHistoryLock.Lock()
 		for _, value := range subScribeHistory {
-			if value.accessRq {
+			if (value.accessRq == true) && (value.zeroMultiFactor < defaultZeroMultiFactorMax) {
 				if value.nodeNum == 0 {
 					value.zeroCount = value.zeroCount + 1
 				} else {

@@ -126,6 +126,15 @@ func (s *Subscribe) newGet() proxy.ProxyList {
 	}
 }
 
+func (s *Subscribe) GetAndBlock() proxy.ProxyList {
+	nodes := s.Get()
+	if len(nodes) > 0 {
+		tool.SubScribeHistoryBlock(s.Url)
+	}
+
+	return nodes
+}
+
 // Get() of Subscribe is to implement Getter interface
 func (s *Subscribe) Get() proxy.ProxyList {
 	if tool.SubScribeHistoryCheckUrlIn(s.Url) { 
