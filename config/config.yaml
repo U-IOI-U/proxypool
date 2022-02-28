@@ -20,6 +20,9 @@ crawl-interval:             # v0.5.x default 60 (minutes)
 healthcheck-timeout:        # default 5 (seconds)
 healthcheck-connection:     # default 500. The number of health check connections simultaneously
 
+# Relay Or Pool test
+relaytest: false
+
 #==== Speed test ====#
 speedtest: false            # default false. Warning: this will consume large network resources.
 speedtest-interval:         # default 720 (min)
@@ -35,3 +38,54 @@ active-max-number:          # default 100. If more than this number of active pr
 #==== Cloudflare api ====#
 cf_email: ""
 cf_key: ""
+
+# telegram file api
+# tg_file_api: "https://tg.i-c-a.su/rss/"
+
+# subscribe zero node history
+zero_fail: false           # 该功能需要内存，默认下关闭此功能
+zero_fail_num: 10          # 如果取10次,取到的节点数都为0,认为该subscribe的url已经失效,后续不再抓取该链接,仅在每次抓取时失败次数累加1
+zero_fail_multifactor: 20  # 抓取时失败次数的上限,抓取失败次数达到此上限后，url不再屏蔽,开始抓取,抓取失败次数会从0开始计算,直到再次达到失败的上限会再次被屏蔽。每次被屏蔽,该数值会自我叠加，就是每次屏蔽都比上次屏蔽的时间要久一倍。
+
+# route api
+route_history_api: false # 调试用，默认关闭
+route_update_api: false  # 调试用，默认关闭
+
+getter_blacklist:
+  web-freessrxyz:
+    "-": # "-"代表屏蔽该种类型的抓取
+  web-fanqiangdang:
+    "-":
+    "https://fanqiangdang.com/forum-48-1.html": # url
+
+# 在Subscribe类型的URL中排除下面结尾的网址
+suburl-blacklist-suffix:
+  - ".apk"
+  - ".webp"
+  - ".jpg"
+  - ".jpeg"
+  - ".gif"
+  - ".png"
+  - ".bmp"
+  - ".mp4"
+  - ".mp3"
+  - ".js"
+  - ".css"
+  - ".exe"
+  - ".rar"
+  - ".zip"
+  - ".7z"
+  - ".tgs"
+  - ".pdf"
+  - ".svg"
+  - "announce"
+# 在Subscribe类型的URL中排除下面开头的网址
+suburl-blacklist-prefix:
+  - "http://www.w3.org"
+  - "https://youtu.be/"                # youtube
+  - "https://youtube.com"              # youtube
+  - "https://m.youtube.com"            # youtube
+  - "https://www.youtube.com"          # youtube
+# 在Subscribe类型的URL中排除下面的网址
+suburl-blacklist:
+  "https://vi.icarephone.com/seven/tmp/1220.txt":  # 节点全部失效
