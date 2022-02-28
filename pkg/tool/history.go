@@ -55,6 +55,16 @@ func SubScribeHistoryUpdateRet(url string, num int) {
 	}
 }
 
+func SubScribeHistoryBlockSuccess(url string) {
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		if subScribeHistory[url].resPonSize > 0 {
+			subScribeHistory[url].zeroMultiFactor = defaultZeroMultiFactorMax
+		}
+		subScribeHistoryLock.Unlock()
+	}
+}
+
 func SubScribeHistoryBlock(url string) {
 	if defaultZeroFail {
 		subScribeHistoryLock.Lock()
