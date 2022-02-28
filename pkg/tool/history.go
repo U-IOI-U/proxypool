@@ -94,10 +94,18 @@ func SubScribeHistoryShow (mode string) string {
 		if strings.Compare(mode, "debug") == 0 {
 			defer SubScribeHistoryClean()
 			log.Debugln("STATISTIC: Subscribe\tcount=%-5d\n", len(subScribeHistory))
-		} else if strings.Compare(mode, "web") == 0 {
+		} else if strings.Compare(mode, "showall") == 0 {
 			retString := make([]string, len(subScribeHistory))
 			for key, value := range subScribeHistory {
 				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
+			}
+			return strings.Join(retString, "")
+		} else if strings.Compare(mode, "showsuc") == 0 {
+			retString := make([]string, len(subScribeHistory))
+			for key, value := range subScribeHistory {
+				if value.nodeNum > 0 {
+					retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
+				}
 			}
 			return strings.Join(retString, "")
 		}

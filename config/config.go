@@ -26,7 +26,7 @@ type ConfigOptions struct {
 	CFEmail               string   `json:"cf_email" yaml:"cf_email"`
 	CFKey                 string   `json:"cf_key" yaml:"cf_key"`
 	TGFileApi             string   `json:"tg_file_api" yaml:"tg_file_api"`
-	RouteShowApi          bool     `json:"route_show_api" yaml:"route_show_api"`
+	RouteHistoryApi       bool     `json:"route_history_api" yaml:"route_history_api"`
 	RouteUpdateApi        bool     `json:"route_update_api" yaml:"route_update_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
 	ProxiesMergeMode      int      `json:"proxies_merge_mode" yaml:"proxies_merge_mode"`

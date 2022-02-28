@@ -291,9 +291,14 @@ func setupRouter() {
 		}
 		c.String(200, proxies[id].Link())
 	})
-	router.GET("/show", func(c *gin.Context) {
-		if config.Config.RouteShowApi {
-			c.String(200, tool.SubScribeHistoryShow("web"))
+	router.GET("/history/:mode", func(c *gin.Context) {
+		if config.Config.RouteHistoryApi {
+			mode := c.Param("mode")
+			if strings.Compare(mode, "showall") == 0 {
+				c.String(200, tool.SubScribeHistoryShow("showall"))
+			} else if strings.Compare(mode, "showsuc") == 0 {
+				c.String(200, tool.SubScribeHistoryShow("showsuc"))
+			}
 		} else {
 			c.String(200, "API is not open!")
 		}
