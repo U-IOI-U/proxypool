@@ -23,9 +23,15 @@ var defatltZeroFailNum int = 10
 var defaultZeroFail bool = false
 
 func SubScribeHistorySetDefaultValue(fail bool, failNum int, failMultiFactor int, failMultiFactorMax int) {
-	defaultZeroMultiFactorMax = failMultiFactorMax
-	defaultZeroMultiFactor = failMultiFactor
-	defatltZeroFailNum = failNum
+	if failMultiFactorMax > 0 {
+		defaultZeroMultiFactorMax = failMultiFactorMax
+	}
+	if failMultiFactor > 0 {
+		defaultZeroMultiFactor = failMultiFactor
+	}
+	if failNum > 0 {
+		defatltZeroFailNum = failNum
+	}
 	defaultZeroFail = fail
 }
 
@@ -87,12 +93,17 @@ func SubScribeHistoryClean() {
 		for _, value := range subScribeHistory {
 			if (value.accessRq == true) && (value.zeroMultiFactor < defaultZeroMultiFactorMax) {
 				if value.nodeNum == 0 {
-					value.zeroCount = value.zeroCount + 1
+					if value.resPonSize > 0 { // 如果请求到数据又无法解析，直接封禁，等待解封
+						value.zeroCount = defatltZeroFailNum + 1
+						value.resPonSize = 0
+					} else {
+						value.zeroCount = value.zeroCount + 1
+					}
 				} else {
 					value.zeroCount = 0
 					value.zeroMultiFactor = defaultZeroMultiFactor
 				}
-		
+
 				if (value.zeroCount > value.zeroMultiFactor) {
 					value.zeroCount = 0
 					value.zeroMultiFactor = value.zeroMultiFactor + defaultZeroMultiFactor
@@ -101,7 +112,10 @@ func SubScribeHistoryClean() {
 				if (value.zeroCount <= defatltZeroFailNum) {
 					value.accessRq = false
 				} else {
-					value.accessRq = true
+					value.accessRq = true // 等待解封
+					if (value.zeroMultiFactor + defaultZeroMultiFactor) > defaultZeroMultiFactorMax { // 永久封禁
+						value.zeroMultiFactor = defaultZeroMultiFactorMax
+					}
 				}
 			}
 		}
