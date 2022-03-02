@@ -298,6 +298,15 @@ func setupRouter() {
 				c.String(200, tool.SubScribeHistoryShow("showall"))
 			} else if strings.Compare(mode, "showsuc") == 0 {
 				c.String(200, tool.SubScribeHistoryShow("showsuc"))
+			} else if strings.Compare(mode, "block") == 0 {
+				// add
+				if blockUrl := c.DefaultQuery("add", ""); blockUrl != "" {
+					tool.SubScribeHistoryBlockAdd(blockUrl)
+				}
+				// del
+				if blockUrl := c.DefaultQuery("del", ""); blockUrl != "" {
+					tool.SubScribeHistoryBlockRemove(blockUrl)
+				}
 			}
 		} else {
 			c.String(200, "API is not open!")
