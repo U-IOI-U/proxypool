@@ -71,10 +71,25 @@ func SubScribeHistoryBlockSuccess(url string) {
 	}
 }
 
-func SubScribeHistoryBlock(url string) {
+func SubScribeHistoryBlockAdd(url string) {
 	if defaultZeroFail {
 		subScribeHistoryLock.Lock()
-		subScribeHistory[url].zeroMultiFactor = defaultZeroMultiFactorMax
+		if _, ok := subScribeHistory[url]; ok {
+			subScribeHistory[url].accessRq = true
+			subScribeHistory[url].zeroMultiFactor = defaultZeroMultiFactorMax
+		} else {
+			subScribeHistory[url] = &HistoryInfo{accessRq: true, resPonSize: 0, nodeNum: 0, zeroCount: 0, zeroMultiFactor: defaultZeroMultiFactorMax}
+		}
+		subScribeHistoryLock.Unlock()
+	}
+}
+
+func SubScribeHistoryBlockRemove(url string) {
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		if _, ok := subScribeHistory[url]; ok {
+			delete(subScribeHistory, url)
+		}
 		subScribeHistoryLock.Unlock()
 	}
 }
@@ -137,7 +152,7 @@ func SubScribeHistoryShow (mode string) string {
 		} else if strings.Compare(mode, "showsuc") == 0 {
 			retString := make([]string, len(subScribeHistory))
 			for key, value := range subScribeHistory {
-				if value.nodeNum > 0 {
+				if value.nodeNum > 0 && value.zeroMultiFactor < defaultZeroMultiFactorMax {
 					retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
 				}
 			}
