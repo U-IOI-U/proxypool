@@ -29,10 +29,19 @@ type Vmess struct {
 	WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
 	ServerName     string            `yaml:"servername,omitempty" json:"servername,omitempty"`
 	WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
+	WSOpts         WSOptions         `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 	HTTPOpts       HTTPOptions       `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
 	HTTP2Opts      HTTP2Options      `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	GRPCOpts       GrpcOptions       `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	TLS            bool              `yaml:"tls,omitempty" json:"tls,omitempty"`
 	SkipCertVerify bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
+}
+
+type WSOptions struct {
+	Path            string              `yaml:"path,omitempty" json:"path,omitempty"`
+	Headers         map[string]string   `yaml:"headers,omitempty" json:"headers,omitempty"`
+	EarlyDataMax    int                 `yaml:"max-early-data,omitempty" json:"max-early-data,omitempty"`
+	EarlyDataHeader string              `yaml:"early-data-header-name,omitempty" json:"early-data-header-name,omitempty"`
 }
 
 type HTTPOptions struct {
@@ -46,12 +55,12 @@ type HTTP2Options struct {
 	Path string   `yaml:"path,omitempty" json:"path,omitempty"` // 暂只处理一个Path
 }
 
-// type GrpcOptions struct {
-// 	GrpcServiceName string `proxy:"grpc-service-name,omitempty"`
-// }
+type GrpcOptions struct {
+	GrpcServiceName string `yaml:"grpc-service-name,omitempty" json:"grpc-service-name,omitempty"`
+}
 
 func (v Vmess) Identifier() string {
-	return net.JoinHostPort(v.Server, strconv.Itoa(v.Port)) + v.Cipher + v.UUID
+	return net.JoinHostPort(v.Server, strconv.Itoa(v.Port)) + v.Cipher + v.UUID + strconv.Itoa(v.AlterID)
 }
 
 func (v Vmess) String() string {
@@ -74,7 +83,7 @@ func (v Vmess) ToSurge() string {
 	// node2 = vmess, server, port, username=, ws=true, ws-path=, ws-headers=
 	if v.Network == "ws" {
 		wsHeasers := ""
-		for k, v := range v.WSHeaders {
+		for k, v := range v.WSOpts.Headers {
 			if wsHeasers == "" {
 				wsHeasers = k + ":" + v
 			} else {
@@ -82,7 +91,7 @@ func (v Vmess) ToSurge() string {
 			}
 		}
 		text := fmt.Sprintf("%s = vmess, %s, %d, username=%s, ws=true, tls=%t, ws-path=%s",
-			v.Name, v.Server, v.Port, v.UUID, v.TLS, v.WSPath)
+			v.Name, v.Server, v.Port, v.UUID, v.TLS, v.WSOpts.Path)
 		if wsHeasers != "" {
 			text += ", ws-headers=" + wsHeasers
 		}
@@ -103,6 +112,21 @@ func (v Vmess) Link() (link string) {
 		return
 	}
 	return fmt.Sprintf("vmess://%s", tool.Base64EncodeBytes(vjv))
+}
+
+func (v *Vmess) ConvToNew() {
+	if v.WSPath != "" && v.WSOpts.Path == "" {
+		v.WSOpts.Path = v.WSPath
+		v.WSPath = ""
+	}
+
+	if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
+		v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
+		for key, value := range v.WSHeaders {
+			v.WSOpts.Headers[key] = value
+		}
+		v.WSHeaders = make(map[string]string)
+	}
 }
 
 type vmessLinkJson struct {
@@ -127,14 +151,14 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 		Id:   v.UUID,
 		Aid:  strconv.Itoa(v.AlterID),
 		Net:  v.Network,
-		Path: v.WSPath,
+		Path: v.WSOpts.Path,
 		Host: v.ServerName,
 		V:    "2",
 	}
 	if v.TLS {
 		vj.Tls = "tls"
 	}
-	if host, ok := v.WSHeaders["HOST"]; ok && host != "" {
+	if host, ok := v.WSOpts.Headers["HOST"]; ok && host != "" {
 		vj.Host = host
 	}
 	return vj
@@ -256,8 +280,10 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			Network:        network,
 			HTTPOpts:       httpOpt,
 			HTTP2Opts:      h2Opt,
-			WSPath:         path,
-			WSHeaders:      wsHeaders,
+			WSOpts: WSOptions{
+				Path:       path,
+				Headers:    wsHeaders,
+			},
 			SkipCertVerify: true,
 			ServerName:     server,
 		}, nil
@@ -330,8 +356,10 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			Network:        vmessJson.Net,
 			HTTPOpts:       httpOpt,
 			HTTP2Opts:      h2Opt,
-			WSPath:         vmessJson.Path,
-			WSHeaders:      wsHeaders,
+			WSOpts: WSOptions{
+			Path:           vmessJson.Path,
+			Headers:        wsHeaders,
+			},
 			ServerName:     vmessJson.Host,
 			TLS:            tls,
 			SkipCertVerify: true,
