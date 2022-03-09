@@ -234,7 +234,7 @@ func setupRouter() {
 		vmessSub := provider.VmessSub{
 			Base: provider.Base{
 				Proxies:    &proxies,
-				Types:      "vmess",
+				Types:      "vmess,vless",
 				Country:    proxyCountry,
 				NotCountry: proxyNotCountry,
 				Speed:      proxySpeed,

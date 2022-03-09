@@ -11,7 +11,7 @@ type VmessSub struct {
 }
 
 func (sub VmessSub) Provide() string {
-	sub.Types = "vmess"
+	sub.Types = "vmess,vless"
 	sub.preFilter()
 	var resultBuilder strings.Builder
 	for _, p := range *sub.Proxies {

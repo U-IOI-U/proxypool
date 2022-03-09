@@ -140,7 +140,7 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("SSProxiesCount: %d", cache.SSProxiesCount)
 	cache.SSRProxiesCount = proxies.TypeLen("ssr")
 	log.Infoln("SSRProxiesCount: %d", cache.SSRProxiesCount)
-	cache.VmessProxiesCount = proxies.TypeLen("vmess")
+	cache.VmessProxiesCount = proxies.TypeLen("vmess") + proxies.TypeLen("vless")
 	log.Infoln("VmessProxiesCount: %d", cache.VmessProxiesCount)
 	cache.TrojanProxiesCount = proxies.TypeLen("trojan")
 	log.Infoln("TrojanProxiesCount: %d", cache.TrojanProxiesCount)
