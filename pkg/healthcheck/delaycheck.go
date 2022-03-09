@@ -79,6 +79,10 @@ func testDelay(p proxy.Proxy) (delay uint16, err error) {
 		pmap["alterId"] = int(pmap["alterId"].(float64))
 	}
 
+	if p.TypeName() == "vless" { // Vless不支持测速
+		return 5, nil
+	}
+
 	clashProxy, err := adapter.ParseProxy(pmap)
 	if err != nil {
 		fmt.Println(err.Error())
