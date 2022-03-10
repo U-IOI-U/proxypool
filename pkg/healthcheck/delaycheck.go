@@ -79,8 +79,51 @@ func testDelay(p proxy.Proxy) (delay uint16, err error) {
 		pmap["alterId"] = int(pmap["alterId"].(float64))
 	}
 
-	if p.TypeName() == "vless" { // Vless不支持测速
-		return 5, nil
+	if p.TypeName() == "vless" { // Vless有效性
+		clashProxy, err := ParseVless(pmap)
+		if err != nil {
+			fmt.Println(err.Error())
+			return 0, err
+		}
+	
+		// Custom context time to avoid unexpected connection block due to dependency
+		respC := make(chan uint16, 1)
+		m := sync.Mutex{}
+		closed := false
+		go func() {
+			defer close(respC)
+			sTime := time.Now()
+			err = HTTPHeadViaVless(clashProxy, "http://www.gstatic.com/generate_204")
+			m.Lock()
+			if closed {
+				m.Unlock()
+				return
+			}
+			closed = true
+			m.Unlock()
+			if err != nil {
+				respC <- 0
+				return
+			}
+			fTime := time.Now()
+			d := uint16(fTime.Sub(sTime) / time.Millisecond)
+			respC <- d
+		}()
+	
+		select {
+		case delay = <-respC:
+			return delay, nil
+		case <-time.After(DelayTimeout * 2):
+			m.Lock()
+			if closed {
+	
+			} else {
+				closed = true
+			}
+			m.Unlock()
+			log.Debugln("unexpected delay check timeout error in proxy %s\n", p.Link())
+			return 0, context.DeadlineExceeded
+		}
 	}
 
 	clashProxy, err := adapter.ParseProxy(pmap)
