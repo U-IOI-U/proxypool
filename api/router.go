@@ -234,7 +234,25 @@ func setupRouter() {
 		vmessSub := provider.VmessSub{
 			Base: provider.Base{
 				Proxies:    &proxies,
-				Types:      "vmess,vless",
+				Types:      "vmess",
+				Country:    proxyCountry,
+				NotCountry: proxyNotCountry,
+				Speed:      proxySpeed,
+				Filter:     proxyFilter,
+			},
+		}
+		c.String(200, vmessSub.Provide())
+	})
+	router.GET("/vless/sub", func(c *gin.Context) {
+		proxyCountry := c.DefaultQuery("c", "")
+		proxyNotCountry := c.DefaultQuery("nc", "")
+		proxySpeed := c.DefaultQuery("speed", "")
+		proxyFilter := c.DefaultQuery("filter", "")
+		proxies := appcache.GetProxies("proxies")
+		vmessSub := provider.VmessSub{
+			Base: provider.Base{
+				Proxies:    &proxies,
+				Types:      "vless",
 				Country:    proxyCountry,
 				NotCountry: proxyNotCountry,
 				Speed:      proxySpeed,
