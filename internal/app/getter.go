@@ -14,7 +14,6 @@ import (
 	"github.com/ssrlive/proxypool/pkg/getter"
 )
 
-// var Getters = make([]getter.Getter, 0)
 type PGetterList *[]getter.Getter
 var Getters PGetterList = nil
 

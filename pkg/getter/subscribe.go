@@ -9,7 +9,6 @@ import (
 
 	"github.com/ssrlive/proxypool/pkg/proxy"
 	"github.com/ssrlive/proxypool/pkg/tool"
-	// "github.com/ivpusic/grpool"
 )
 
 // Add key value pair to creatorMap(string → creator) in base.go
@@ -21,41 +20,6 @@ func init() {
 type Subscribe struct {
 	Url string
 }
-
-// func (s *Subscribe) QueueGet(urls []string) proxy.ProxyList {
-// 	if len(urls) > 0 {
-// 		var qc = make(chan proxy.Proxy)
-// 		proxies := make([]proxy.Proxy, 0)
-// 		pool := grpool.NewPool(4, 2)
-
-// 		pool.WaitCount(len(urls))
-
-// 		for _, u := range urls {
-// 			url := u
-// 			pool.JobQueue <- func () {
-// 				defer pool.JobDone()
-// 				nodes := (&Subscribe{Url: url}).Get()
-// 				for _, node := range nodes {
-// 					qc <- node
-// 				}
-// 			}
-// 		}
-
-// 		go func() {
-// 			pool.WaitAll()
-// 			pool.Release()
-// 			close(qc)
-// 		}()
-
-// 		for q := range qc {
-// 			if q != nil {
-// 				proxies = append(proxies, q)
-// 			}
-// 		}
-// 		return proxies
-// 	}
-// 	return nil
-// }
 
 // 全部并发处理，处理量过大
 func (s *Subscribe) QueueGet(urls []string) proxy.ProxyList {
