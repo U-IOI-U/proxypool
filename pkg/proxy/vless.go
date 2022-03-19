@@ -74,7 +74,7 @@ func (v Vless) Link() (link string) {
 		query.Set("security", url.QueryEscape("tls"))
 	}
 	if _, ok := v.WSHeaders["Host"]; ok {
-		query.Set("host", url.QueryEscape(v.WSHeaders["Host"]))		
+		query.Set("host", url.QueryEscape(v.WSHeaders["Host"]))
 	}
 
 	uri := url.URL{
@@ -109,8 +109,8 @@ func ParseVlessLink(link string) (*Vless, error) {
 	sni, _ = url.QueryUnescape(sni)
 	transformType := moreInfos.Get("type")
 	transformType, _ = url.QueryUnescape(transformType)
-	security := moreInfos.Get("security")
-	security, _ = url.QueryUnescape(security)
+	// security := moreInfos.Get("security")
+	// security, _ = url.QueryUnescape(security)
 	host := moreInfos.Get("host")
 	host, _ = url.QueryUnescape(host)
 	path := moreInfos.Get("path")
@@ -127,12 +127,12 @@ func ParseVlessLink(link string) (*Vless, error) {
 		return nil, ErrorNotVlessLink
 	}
 	// TLS
-	tls := true
-	if security == "tls" || security == "xtls" {
-		tls = true
+	// tls := true
+	// if security == "tls" || security == "xtls" {
+	// 	tls = true
 	// } else {
 	// 	tls = false
-	}
+	// }
 	wsHeaders := make(map[string]string)
 	if host != "" {
 		wsHeaders["Host"] = host
@@ -152,7 +152,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		ServerName:     sni,
 		WSHeaders:      wsHeaders,
 		Flow:           flow,
-		TLS:            tls,
+		TLS:            true,
 		SkipCertVerify: true,
 	}, nil
 }
