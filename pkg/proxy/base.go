@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ssrlive/proxypool/pkg/geoIp"
+	"strconv"
 )
 
 /* Base implements interface Proxy. It's the basic proxy struct. Vmess etc extends Base*/
@@ -93,6 +94,8 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 		p, err = ParseTrojanLink(link)
 	} else if strings.HasPrefix(link, "vless://") {
 		p, err = ParseVlessLink(link)
+	} else if strings.HasPrefix(link, "https://") {
+		p, err = ParseHttpLink(link)
 	}
 	if err != nil || p == nil {
 		return nil, errors.New("link parse failed")
@@ -111,6 +114,14 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 
 func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error) {
 	p["name"] = ""
+	switch p["type"].(string) {
+	case "http":
+		if _, ok := p["username"]; ok {
+			if _, ok := p["username"].(string); !ok {
+				p["username"] = strconv.Itoa(p["username"].(int))
+			}
+		}
+	}
 	pjson, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -139,6 +150,13 @@ func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error)
 		return &proxy, nil
 	case "trojan":
 		var proxy Trojan
+		err := json.Unmarshal(pjson, &proxy)
+		if err != nil {
+			return nil, err
+		}
+		return &proxy, nil
+	case "http":
+		var proxy CHttp
 		err := json.Unmarshal(pjson, &proxy)
 		if err != nil {
 			return nil, err
