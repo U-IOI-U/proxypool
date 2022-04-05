@@ -30,7 +30,8 @@ func init() {
 	sortType["ssr"] = 2
 	sortType["vmess"] = 3
 	sortType["trojan"] = 4
-	sortType["vless"] = 5
+	sortType["http"] = 5
+	sortType["vless"] = 6
 }
 
 // sort排序使用

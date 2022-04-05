@@ -74,7 +74,7 @@ func (s *Subscribe) newGet() proxy.ProxyList {
 	
 		return ClashProxy2ProxyArray(conf.Proxy)
 	} else {
-		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") {
+		if strings.Contains(string(body), "ss://") || strings.Contains(string(body), "ssr://") || strings.Contains(string(body), "vmess://") || strings.Contains(string(body), "trojan://") || strings.Contains(string(body), "https://") {
 			return FuzzParseProxyFromString(string(body))
 		} else {
 			nodesString, err := tool.Base64DecodeString(string(body))
