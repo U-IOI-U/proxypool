@@ -139,24 +139,33 @@ func SubScribeHistoryClean() {
 }
 
 func SubScribeHistoryShow (mode string) string {
-	if (len(subScribeHistory) > 0) {
-		if strings.Compare(mode, "debug") == 0 {
-			defer SubScribeHistoryClean()
-			log.Debugln("STATISTIC: Subscribe\tcount=%-5d\n", len(subScribeHistory))
-		} else if strings.Compare(mode, "showall") == 0 {
-			retString := make([]string, len(subScribeHistory))
-			for key, value := range subScribeHistory {
-				retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
-			}
-			return strings.Join(retString, "")
-		} else if strings.Compare(mode, "showsuc") == 0 {
-			retString := make([]string, len(subScribeHistory))
-			for key, value := range subScribeHistory {
-				if value.nodeNum > 0 && value.zeroMultiFactor < defaultZeroMultiFactorMax {
+	if defaultZeroFail {
+		subScribeHistoryLock.Lock()
+		lenHis := len(subScribeHistory)
+		subScribeHistoryLock.Unlock()
+		if lenHis > 0 {
+			if strings.Compare(mode, "debug") == 0 {
+				defer SubScribeHistoryClean()
+				log.Debugln("STATISTIC: Subscribe\tcount=%-5d\n", lenHis)
+			} else if strings.Compare(mode, "showall") == 0 {
+				retString := make([]string, lenHis)
+				subScribeHistoryLock.Lock()
+				for key, value := range subScribeHistory {
 					retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
 				}
+				subScribeHistoryLock.Unlock()
+				return strings.Join(retString, "")
+			} else if strings.Compare(mode, "showsuc") == 0 {
+				retString := make([]string, lenHis)
+				subScribeHistoryLock.Lock()
+				for key, value := range subScribeHistory {
+					if value.nodeNum > 0 && value.zeroMultiFactor < defaultZeroMultiFactorMax {
+						retString = append(retString, fmt.Sprintf("Subscribe accessRq=%-5t resPonSize=%-6d zeroCount=%-3d zeroMultiFactor=%-4d count=%-5d url = %s\n", value.accessRq, value.resPonSize, value.zeroCount, value.zeroMultiFactor, value.nodeNum, key))
+					}
+				}
+				subScribeHistoryLock.Unlock()
+				return strings.Join(retString, "")
 			}
-			return strings.Join(retString, "")
 		}
 	}
 
