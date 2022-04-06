@@ -98,10 +98,12 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("SSProxiesCount: %d", cache.SSProxiesCount)
 	cache.SSRProxiesCount = proxies.TypeLen("ssr")
 	log.Infoln("SSRProxiesCount: %d", cache.SSRProxiesCount)
-	cache.VmessProxiesCount = proxies.TypeLen("vmess") + proxies.TypeLen("vless")
+	cache.VmessProxiesCount = proxies.TypeLen("vmess")
 	log.Infoln("VmessProxiesCount: %d", cache.VmessProxiesCount)
+	log.Infoln("VlessProxiesCount: %d", proxies.TypeLen("vless"))
 	cache.TrojanProxiesCount = proxies.TypeLen("trojan")
 	log.Infoln("TrojanProxiesCount: %d", cache.TrojanProxiesCount)
+	log.Infoln("HttpProxiesCount: %d", proxies.TypeLen("http"))
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
 	// Health Check
