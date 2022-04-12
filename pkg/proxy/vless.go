@@ -40,12 +40,11 @@ func (v Vless) String() string {
 }
 
 func (v Vless) ToClash() string {
-	// data, err := json.Marshal(v)
-	// if err != nil {
-	// 	return ""
-	// }
-	// return "- " + string(data)
-	return ""
+	data, err := json.Marshal(v)
+	if err != nil {
+		return ""
+	}
+	return "- " + string(data)
 }
 
 func (v Vless) ToSurge() string {
