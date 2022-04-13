@@ -3,7 +3,6 @@ package proxy
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ssrlive/proxypool/pkg/geoIp"
 	"strings"
 	"strconv"
 )
@@ -99,28 +98,12 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 	if err != nil || p == nil {
 		return nil, errors.New("link parse failed")
 	}
-	_, country, err := geoIp.GeoIpDB.Find(p.BaseInfo().Server) // IP库不准
-	if err != nil {
-		country = "🏁 ZZ"
-	}
-	p.SetCountry(country)
-	// trojan依赖域名？<-这是啥?不管什么情况感觉都不应该替换域名为IP（主要是IP库的质量和节点质量不该挂钩）
-	//if p.TypeName() != "trojan" {
-	//	p.SetIP(ip)
-	//}
 	return
 }
 
 func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error) {
 	p["name"] = ""
-	switch p["type"].(string) {
-	case "http":
-		if _, ok := p["username"]; ok {
-			if _, ok := p["username"].(string); !ok {
-				p["username"] = strconv.Itoa(p["username"].(int))
-			}
-		}
-	}
+	fixProxyFromClashProxy(p)
 	pjson, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -169,6 +152,27 @@ func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error)
 			return nil, err
 		}
 		return &proxy, nil
+	case "snell":
+		var proxy Snell
+		err := json.Unmarshal(pjson, &proxy)
+		if err != nil {
+			return nil, err
+		}
+		return &proxy, nil
 	}
 	return nil, errors.New("clash json parse failed")
+}
+
+func fixProxyFromClashProxy(p map[string]interface{}) {
+	// 修正类型错误
+	switch p["type"].(string) {
+	case "http":
+		if _, ok := p["username"]; ok {
+			if _, ok := p["username"].(string); !ok {
+				if _, ok := p["username"].(int); ok {
+					p["username"] = strconv.Itoa(p["username"].(int))
+				}
+			}
+		}
+	}
 }
