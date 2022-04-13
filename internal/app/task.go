@@ -104,6 +104,7 @@ func CrawlGo(pGetters PGetterList) {
 	cache.TrojanProxiesCount = proxies.TypeLen("trojan")
 	log.Infoln("TrojanProxiesCount: %d", cache.TrojanProxiesCount)
 	log.Infoln("HttpProxiesCount: %d", proxies.TypeLen("http"))
+	log.Infoln("SnellProxiesCount: %d", proxies.TypeLen("snell"))
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
 	// Health Check
@@ -120,7 +121,8 @@ func CrawlGo(pGetters PGetterList) {
 	// proxies = healthcheck.CleanBadProxies(proxies)
 
 	log.Infoln("CrawlGo clash usable proxy count: %d", len(proxies))
-
+	// 节点添加Country信息
+	proxies.AddCountry()
 	// Format name like US_01 sorted by country
 	proxies.NameAddCounrty().Sort()
 	log.Infoln("Proxy rename DONE!")
