@@ -227,6 +227,10 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			return nil, ErrorVmessPayloadParseFail
 		}
 		uuid := mixInfo[0]
+		// UUID 不正确
+		if !strings.Contains(uuid, "-") {
+			return nil, ErrorVmessPayloadParseFail
+		}
 		server := mixInfo[1]
 		portStr := baseInfoPath[2]
 		port, err := strconv.Atoi(portStr)
@@ -331,6 +335,10 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		vmessJson, err = mapStrInter2VmessLinkJson(jsonMap)
 		if err != nil {
 			return nil, err
+		}
+		// UUID 不正确
+		if !strings.Contains(vmessJson.Id, "-") {
+			return nil, ErrorVmessPayloadParseFail
 		}
 
 		alterId, err := strconv.Atoi(vmessJson.Aid)
