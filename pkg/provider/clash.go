@@ -50,6 +50,12 @@ func checkClashSupport(p proxy.Proxy) bool {
 		}
 	case "vmess":
 		vmess := p.(*proxy.Vmess)
+		if !tool.CheckVmessUUID(vmess.UUID) {
+			return false
+		}
+		if !tool.CheckPort(vmess.Base.Port) {
+			return false
+		}
 		if tool.CheckInList(vmessCipherList, vmess.Cipher) {
 			return true
 		}
@@ -63,6 +69,13 @@ func checkClashSupport(p proxy.Proxy) bool {
 	case "http":
 		return true
 	case "vless":
+		vless := p.(*proxy.Vless)
+		if !tool.CheckVmessUUID(vless.UUID) {
+			return false
+		}
+		if !tool.CheckPort(vless.Base.Port) {
+			return false
+		}
 		return true
 	case "snell":
 		return true
