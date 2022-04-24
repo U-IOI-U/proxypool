@@ -17,7 +17,7 @@ func CheckVmessUUID(uuid string) bool {
 }
 
 func CheckPort(port int) bool {
-	if port < 0 || port > 65535 {
+	if port <= 0 || port > 65535 {
 		return false
 	}
 	return true
