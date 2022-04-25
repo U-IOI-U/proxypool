@@ -72,7 +72,7 @@ var SSRCipherList = []string{
 	"cast5-cfb",
 	"rc4-md5",
 	"chacha20-ietf",
-	"salsa20",
+	// "salsa20",
 	"camellia-128-cfb",
 	"camellia-192-cfb",
 	"camellia-256-cfb",
