@@ -79,7 +79,7 @@ func RelayCheck(proxies proxy.ProxyList) {
 
 // Get outbound relay ip
 func testRelay(p proxy.Proxy) (outip string, err error) {
-	pmap := make(map[string]interface{})
+	pmap := make(map[string]any)
 	err = json.Unmarshal([]byte(p.String()), &pmap)
 	if err != nil {
 		return "", err

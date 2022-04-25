@@ -69,7 +69,7 @@ func CleanBadProxiesWithGrpool(proxies []proxy.Proxy) (cproxies []proxy.Proxy) {
 
 // Return 0 for error
 func testDelay(p proxy.Proxy) (delay uint16, err error) {
-	pmap := make(map[string]interface{})
+	pmap := make(map[string]any)
 	err = json.Unmarshal([]byte(p.String()), &pmap)
 	if err != nil {
 		return

@@ -13,7 +13,7 @@ import (
 	clash_vless "github.com/U-IOI-U/Clash.Meta/adapter"
 )
 
-func ParseVless(pmap map[string]interface{}) (C.Proxy, error) {
+func ParseVless(pmap map[string]any) (C.Proxy, error) {
 	return clash_vless.ParseProxy(pmap)
 }
 

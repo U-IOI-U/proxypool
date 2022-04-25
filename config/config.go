@@ -25,14 +25,14 @@ type ConfigOptions struct {
 	RouteHistoryApi       bool     `json:"route_history_api" yaml:"route_history_api"`
 	RouteUpdateApi        bool     `json:"route_update_api" yaml:"route_update_api"`
 	SourceFiles           []string `json:"source-files" yaml:"source-files"`
-	GetterBlackList       map[string]map[string]interface{} `json:"getter_blacklist" yaml:"getter_blacklist"`
+	GetterBlackList       map[string]map[string]any `json:"getter_blacklist" yaml:"getter_blacklist"`
 	ZeroFail              bool     `json:"zero_fail" yaml:"zero_fail"`
 	ZeroFailNum           int      `json:"zero_fail_num" yaml:"zero_fail_num"`
 	ZeroFailMultiFactor   int      `json:"zero_fail_multifactor" yaml:"zero_fail_multifactor"`
 	ZeroFailMultiFactorMax int     `json:"zero_fail_multifactor_max" yaml:"zero_fail_multifactor_max"`
 	SubUrlsBlackPrefix    []string `json:"suburl-blacklist-prefix" yaml:"suburl-blacklist-prefix"`
 	SubUrlsBlackSuffix    []string `json:"suburl-blacklist-suffix" yaml:"suburl-blacklist-suffix"`
-	SubUrlsBlackList      map[string]interface{} `json:"suburl-blacklist" yaml:"suburl-blacklist"`
+	SubUrlsBlackList      map[string]any `json:"suburl-blacklist" yaml:"suburl-blacklist"`
 	HealthCheckTimeout    int      `json:"healthcheck-timeout" yaml:"healthcheck-timeout"`
 	HealthCheckConnection int      `json:"healthcheck-connection" yaml:"healthcheck-connection"`
 	RelayTest             bool     `json:"relaytest" yaml:"relaytest"`

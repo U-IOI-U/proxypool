@@ -101,7 +101,7 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 	return
 }
 
-func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error) {
+func ParseProxyFromClashProxy(p map[string]any) (proxy Proxy, err error) {
 	p["name"] = ""
 	fixProxyFromClashProxy(p)
 	pjson, err := json.Marshal(p)
@@ -164,7 +164,7 @@ func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error)
 	return nil, errors.New("clash json parse failed")
 }
 
-func fixProxyFromClashProxy(p map[string]interface{}) {
+func fixProxyFromClashProxy(p map[string]any) {
 	// 修正类型错误
 	switch p["type"].(string) {
 	case "http":
