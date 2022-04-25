@@ -6,7 +6,7 @@ go 1.18
 
 require (
 	github.com/Dreamacro/clash v1.10.0
-	github.com/U-IOI-U/Clash.Meta v1.10.1-0.20220410041931-286e12203a88
+	github.com/U-IOI-U/clash_meta v1.10.1-0.20220425123209-ab5293112f98
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cache v1.1.0
 	github.com/gin-gonic/gin v1.7.7
