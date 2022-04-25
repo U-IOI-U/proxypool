@@ -3,14 +3,14 @@ package healthcheck
 import (
 	"context"
 	"fmt"
-	C "github.com/U-IOI-U/Clash.Meta/constant"
+	C "github.com/U-IOI-U/clash_meta/constant"
 	// "github.com/ssrlive/proxypool/pkg/proxy"
 	// "io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
-	clash_vless "github.com/U-IOI-U/Clash.Meta/adapter"
+	clash_vless "github.com/U-IOI-U/clash_meta/adapter"
 )
 
 func ParseVless(pmap map[string]any) (C.Proxy, error) {
