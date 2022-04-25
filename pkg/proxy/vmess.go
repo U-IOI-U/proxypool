@@ -115,17 +115,29 @@ func (v Vmess) Link() (link string) {
 }
 
 func (v *Vmess) ConvToNew() {
-	if v.WSPath != "" && v.WSOpts.Path == "" {
-		v.WSOpts.Path = v.WSPath
-		v.WSPath = ""
-	}
-
-	if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
-		v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
-		for key, value := range v.WSHeaders {
-			v.WSOpts.Headers[key] = value
+	switch v.Network {
+	case "ws":
+		if v.WSPath != "" && v.WSOpts.Path == "" {
+			v.WSOpts.Path = v.WSPath
+			v.WSPath = ""
 		}
-		v.WSHeaders = make(map[string]string)
+	
+		if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
+			v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
+			for key, value := range v.WSHeaders {
+				v.WSOpts.Headers[key] = value
+			}
+			v.WSHeaders = make(map[string]string)
+		}
+	case "h2":
+		if !v.TLS {
+			v.TLS = true
+		}
+	case "grpc":
+		if !v.TLS {
+			v.TLS = true
+		}
+	default:
 	}
 }
 
