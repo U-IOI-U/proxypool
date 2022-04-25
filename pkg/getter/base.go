@@ -46,7 +46,7 @@ func StringArray2ProxyArray(origin []string) proxy.ProxyList {
 	return results
 }
 
-func ClashProxy2ProxyArray(origin []map[string]interface{}) proxy.ProxyList {
+func ClashProxy2ProxyArray(origin []map[string]any) proxy.ProxyList {
 	results := make(proxy.ProxyList, 0, len(origin))
 	for _, pjson := range origin {
 		p, err := proxy.ParseProxyFromClashProxy(pjson)
@@ -76,7 +76,7 @@ var (
 	ErrorCreaterNotSupported = errors.New("type not supported")
 )
 
-func AssertTypeStringNotNull(i interface{}) (str string, err error) {
+func AssertTypeStringNotNull(i any) (str string, err error) {
 	switch i := i.(type) {
 	case string:
 		str = i

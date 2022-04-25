@@ -35,23 +35,23 @@ func SetLevel(l LogLevel) {
 	log.SetLevel(levelMapping[level])
 }
 
-func Traceln(format string, v ...interface{}) {
+func Traceln(format string, v ...any) {
 	log.Traceln(fmt.Sprintf(format, v...))
 }
 
-func Debugln(format string, v ...interface{}) {
+func Debugln(format string, v ...any) {
 	log.Debugln(fmt.Sprintf(format, v...))
 }
 
-func Infoln(format string, v ...interface{}) {
+func Infoln(format string, v ...any) {
 	log.Infoln(fmt.Sprintf(format, v...))
 }
 
-func Warnln(format string, v ...interface{}) {
+func Warnln(format string, v ...any) {
 	log.Warnln(fmt.Sprintf(format, v...))
 }
 
-func Errorln(format string, v ...interface{}) {
+func Errorln(format string, v ...any) {
 	log.Errorln(fmt.Sprintf(format, v...))
 }
 

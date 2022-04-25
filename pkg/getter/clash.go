@@ -22,7 +22,7 @@ type Clash struct {
 }
 
 type config struct {
-	Proxy []map[string]interface{} `json:"proxies" yaml:"proxies"`
+	Proxy []map[string]any `json:"proxies" yaml:"proxies"`
 }
 
 func (c *Clash) Get() proxy.ProxyList {

@@ -21,7 +21,7 @@ type ssJson struct {
 	Method     string                 `json:"method"`
 	Password   string                 `json:"password"`
 	Plugin     string                 `json:"plugin"`
-	PluginOpts map[string]interface{} `json:"plugin_opts"`
+	PluginOpts map[string]any         `json:"plugin_opts"`
 }
 
 func (sub SSSub) Provide() string {
