@@ -21,7 +21,10 @@ type Vless struct {
 	WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
 	ServerName     string            `yaml:"servername,omitempty" json:"servername,omitempty"`
 	WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
-	// WSOpts         WSOptions         `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	WSOpts         WSOptions         `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	HTTPOpts       HTTPOptions       `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
+	HTTP2Opts      HTTP2Options      `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	GRPCOpts       GrpcOptions       `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	Flow           string            `yaml:"flow,omitempty" json:"flow,omitempty"`
 	TLS            bool              `yaml:"tls,omitempty" json:"tls,omitempty"`
 	SkipCertVerify bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
@@ -63,17 +66,38 @@ func (v Vless) Link() (link string) {
 	if v.Network != "" {
 		query.Set("type", url.QueryEscape(v.Network))
 	}
-	if v.WSPath != "" {
-		query.Set("path", url.QueryEscape(v.WSPath))
-	}
 	if v.Flow != "" {
 		query.Set("flow", url.QueryEscape(v.Flow))
 		query.Set("security", url.QueryEscape("xtls"))
 	} else {
 		query.Set("security", url.QueryEscape("tls"))
 	}
-	if _, ok := v.WSHeaders["Host"]; ok {
-		query.Set("host", url.QueryEscape(v.WSHeaders["Host"]))
+	switch v.Network {
+	case "ws":
+		if v.WSOpts.Path != "" {
+			query.Set("path", url.QueryEscape(v.WSOpts.Path))
+		}
+		if _, ok := v.WSOpts.Headers["Host"]; ok {
+			query.Set("host", url.QueryEscape(v.WSOpts.Headers["Host"]))
+		}
+	case "http":
+		if len(v.HTTPOpts.Path) > 0 {
+			query.Set("path", url.QueryEscape(v.HTTPOpts.Path[0]))
+		}
+		if _, ok := v.HTTPOpts.Headers["Host"]; ok {
+			if len(v.HTTPOpts.Headers["Host"]) > 0 {
+				query.Set("host", url.QueryEscape(v.HTTPOpts.Headers["Host"][0]))
+			}
+		}
+	case "h2":
+		if v.HTTP2Opts.Path != "" {
+			query.Set("path", url.QueryEscape(v.HTTP2Opts.Path))
+		}
+		if len(v.HTTP2Opts.Host) > 0 {
+			query.Set("host", url.QueryEscape(v.HTTP2Opts.Host[0]))
+		}
+	case "grpc":
+	default:
 	}
 
 	uri := url.URL{
@@ -85,6 +109,38 @@ func (v Vless) Link() (link string) {
 	}
 
 	return uri.String()
+}
+
+func (v *Vless) ConvToNew() {
+	switch v.Network {
+	case "ws":
+		if v.WSPath != "" && v.WSOpts.Path == "" {
+			v.WSOpts.Path = v.WSPath
+			v.WSPath = ""
+		}
+	
+		if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
+			v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
+			for key, value := range v.WSHeaders {
+				v.WSOpts.Headers[key] = value
+			}
+			v.WSHeaders = make(map[string]string)
+		}
+	case "http":
+		if v.HTTPOpts.Method == "" {
+			v.HTTPOpts.Method = "GET"
+		}
+
+		if len(v.HTTPOpts.Path) == 0 {
+			v.HTTPOpts.Path = []string{"/"}
+		}
+	case "h2":
+		if v.HTTP2Opts.Path == "" {
+			v.HTTP2Opts.Path = "/"
+		}
+	case "grpc":
+	default:
+	}
 }
 
 func ParseVlessLink(link string) (*Vless, error) {
@@ -132,9 +188,44 @@ func ParseVlessLink(link string) (*Vless, error) {
 	// } else {
 	// 	tls = false
 	// }
-	wsHeaders := make(map[string]string)
-	if host != "" {
-		wsHeaders["Host"] = host
+
+	wsOpt := WSOptions{}
+	httpOpt := HTTPOptions{}
+	h2Opt := HTTP2Options{}
+	grpcOpt := GrpcOptions{}
+
+	switch transformType {
+	case "ws":
+		if path == "" {
+			wsOpt.Path = "/"
+		} else {
+			wsOpt.Path = path
+		}
+		if host != "" {
+			wsOpt.Headers["Host"] = host
+		}
+	case "http":
+		httpOpt.Method = "GET"
+		if path == "" {
+			httpOpt.Path = []string{"/"}
+		} else {
+			httpOpt.Path = []string{path}
+		}
+		if host != "" {
+			httpOpt.Headers["Host"] =  []string{host}
+		}
+	case "h2":
+		if path == "" {
+			h2Opt.Path = "/"
+		} else {
+			h2Opt.Path = path
+		}
+		if host != "" {
+			h2Opt.Host = []string{host}
+		}
+	case "grpc":
+	default: /* tcp */
+
 	}
 
 	return &Vless{
@@ -147,9 +238,11 @@ func ParseVlessLink(link string) (*Vless, error) {
 		},
 		UUID:           uuid,
 		Network:        transformType,
-		WSPath:         path,
 		ServerName:     sni,
-		WSHeaders:      wsHeaders,
+		WSOpts:         wsOpt,
+		HTTPOpts:       httpOpt,
+		HTTP2Opts:      h2Opt,
+		GRPCOpts:       grpcOpt,
 		Flow:           flow,
 		TLS:            true,
 		SkipCertVerify: true,
