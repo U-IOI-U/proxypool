@@ -112,6 +112,8 @@ func (v Vless) Link() (link string) {
 }
 
 func (v *Vless) ConvToNew() {
+	v.TLS = true
+
 	switch v.Network {
 	case "ws":
 		if v.WSPath != "" && v.WSOpts.Path == "" {
