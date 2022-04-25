@@ -202,6 +202,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 			wsOpt.Path = path
 		}
 		if host != "" {
+			wsOpt.Headers = make(map[string]string, 1)
 			wsOpt.Headers["Host"] = host
 		}
 	case "http":
@@ -212,7 +213,8 @@ func ParseVlessLink(link string) (*Vless, error) {
 			httpOpt.Path = []string{path}
 		}
 		if host != "" {
-			httpOpt.Headers["Host"] =  []string{host}
+			httpOpt.Headers = make(map[string][]string, 1)
+			httpOpt.Headers["Host"] = []string{host}
 		}
 	case "h2":
 		if path == "" {
