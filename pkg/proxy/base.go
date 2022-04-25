@@ -151,6 +151,7 @@ func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error)
 		if err != nil {
 			return nil, err
 		}
+		proxy.ConvToNew()
 		return &proxy, nil
 	case "snell":
 		var proxy Snell
