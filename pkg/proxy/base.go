@@ -103,6 +103,11 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 }
 
 func ParseProxyFromClashProxy(p map[string]any) (proxy Proxy, err error) {
+	if _, ok := p["name"]; !ok {
+		// map 没有初始化???
+		return nil, err
+	}
+
 	p["name"] = ""
 	fixProxyFromClashProxy(p)
 	pjson, err := json.Marshal(p)
