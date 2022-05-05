@@ -179,6 +179,9 @@ func ParseVlessLink(link string) (*Vless, error) {
 	flow := moreInfos.Get("flow")
 	flow, _ = url.QueryUnescape(flow)
 
+	srvName := moreInfos.Get("serviceName")
+	srvName, _ = url.QueryUnescape(srvName)
+
 	// Port
 	if port == 0 {
 		return nil, ErrorNotVlessLink
@@ -228,6 +231,9 @@ func ParseVlessLink(link string) (*Vless, error) {
 			h2Opt.Host = []string{host}
 		}
 	case "grpc":
+		if srvName != "" {
+			grpcOpt.GrpcServiceName = srvName
+		}
 	default: /* tcp */
 
 	}
