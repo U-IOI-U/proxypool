@@ -102,7 +102,7 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 }
 
 func ParseProxyFromClashProxy(p map[string]any) (proxy Proxy, err error) {
-	if p == nil || len(p) == 0 {
+	if p == nil || len(p) == 0 || p["type"] == nil {
 		// map 没有初始化???
 		return nil, err
 	}
