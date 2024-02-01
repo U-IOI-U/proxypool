@@ -6,7 +6,7 @@ import (
 
 func TestConnect(t *testing.T) {
 	//t.SkipNow()
-	connect()
+	// connect()
 	//InitTables()
 	//proxies := GetAllProxies()
 	//fmt.Println(proxies.Len())

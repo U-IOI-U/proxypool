@@ -24,7 +24,7 @@ type Shadowsocks struct {
 	Password   string                 `yaml:"password" json:"password"`
 	Cipher     string                 `yaml:"cipher" json:"cipher"`
 	Plugin     string                 `yaml:"plugin,omitempty" json:"plugin,omitempty"`
-	PluginOpts map[string]any         `yaml:"plugin-opts,omitempty" json:"plugin-opts,omitempty"`
+	PluginOpts map[string]interface{} `yaml:"plugin-opts,omitempty" json:"plugin-opts,omitempty"`
 }
 
 // Identifier generates an unique identifier of one proxy
@@ -122,7 +122,7 @@ func ParseSSLink(link string) (*Shadowsocks, error) {
 	moreInfos := uri.Query()
 	pluginString := moreInfos.Get("plugin")
 	plugin := ""
-	pluginOpts := make(map[string]any)
+	pluginOpts := make(map[string]interface{})
 	if strings.Contains(pluginString, ";") {
 		pluginInfos, err := url.ParseQuery(pluginString)
 		if err == nil {

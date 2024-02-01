@@ -77,7 +77,7 @@ func CleanBadProxiesWithGrpool(proxies []proxy.Proxy) (cproxies []proxy.Proxy) {
 
 // Return 0 for error
 func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
-	pmap := make(map[string]any)
+	pmap := make(map[string]interface{})
 	err = json.Unmarshal([]byte(p.String()), &pmap)
 	if err != nil {
 		return
@@ -93,43 +93,26 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 			fmt.Println(err.Error())
 			return 0, err
 		}
-	
-		// Custom context time to avoid unexpected connection block due to dependency
-		respC := make(chan uint16, 1)
-		m := sync.Mutex{}
-		closed := false
+
+		respC := make(chan struct {
+			time.Duration
+			error
+		})
+		defer close(respC)
 		go func() {
-			defer close(respC)
 			sTime := time.Now()
 			err = HTTPHeadViaVless(clashProxy, "http://www.gstatic.com/generate_204")
-			m.Lock()
-			if closed {
-				m.Unlock()
-				return
-			}
-			closed = true
-			m.Unlock()
-			if err != nil {
-				respC <- 0
-				return
-			}
-			fTime := time.Now()
-			d := uint16(fTime.Sub(sTime) / time.Millisecond)
-			respC <- d
+			respC <- struct {
+				time.Duration
+				error
+			}{time.Since(sTime), err}
 		}()
-	
-		select {
-		case delay = <-respC:
-			return delay, nil
-		case <-time.After(DelayTimeout * 2):
-			m.Lock()
-			if closed {
-	
-			} else {
-				closed = true
-			}
-			m.Unlock()
-			log.Debugln("unexpected delay check timeout error in proxy %s\n", p.Link())
+
+		pair, ok := <-respC
+
+		if ok {
+			return pair.Duration, pair.error
+		} else {
 			return 0, context.DeadlineExceeded
 		}
 	}

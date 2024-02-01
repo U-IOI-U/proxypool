@@ -102,7 +102,7 @@ func ParseProxyFromLink(link string) (p Proxy, err error) {
 	return
 }
 
-func ParseProxyFromClashProxy(p map[string]any) (proxy Proxy, err error) {
+func ParseProxyFromClashProxy(p map[string]interface{}) (proxy Proxy, err error) {
 	if p == nil || len(p) == 0 || p["type"] == nil {
 		// map 没有初始化???
 		return nil, err
@@ -135,6 +135,7 @@ func ParseProxyFromClashProxy(p map[string]any) (proxy Proxy, err error) {
 		if err != nil {
 			return nil, err
 		}
+		proxy.ConvToNew()
 		return &proxy, nil
 	case "trojan":
 		var proxy Trojan

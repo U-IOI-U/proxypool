@@ -32,11 +32,14 @@ type Vmess struct {
 	TLS            bool         `yaml:"tls,omitempty" json:"tls,omitempty"`
 	SkipCertVerify bool         `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
 	WSOpts         *WSOptions   `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	GRPCOpts       GrpcOptions  `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 }
 
 type WSOptions struct {
 	Path    string            `yaml:"path,omitempty" json:"path,omitempty"`
 	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
+	EarlyDataMax    int       `yaml:"max-early-data,omitempty" json:"max-early-data,omitempty"`
+	EarlyDataHeader string    `yaml:"early-data-header-name,omitempty" json:"early-data-header-name,omitempty"`
 }
 
 type HTTPOptions struct {
@@ -48,6 +51,10 @@ type HTTPOptions struct {
 type HTTP2Options struct {
 	Host []string `yaml:"host,omitempty" json:"host,omitempty"`
 	Path string   `yaml:"path,omitempty" json:"path,omitempty"` // 暂只处理一个Path
+}
+
+type GrpcOptions struct {
+	GrpcServiceName string `yaml:"grpc-service-name,omitempty" json:"grpc-service-name,omitempty"`
 }
 
 func (v *Vmess) UnmarshalJSON(data []byte) error {
@@ -99,7 +106,7 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 }
 
 func (v Vmess) Identifier() string {
-	return net.JoinHostPort(v.Server, strconv.Itoa(v.Port)) + v.Cipher + v.UUID
+	return net.JoinHostPort(v.Server, strconv.Itoa(v.Port)) + v.Cipher + v.UUID + strconv.Itoa(v.AlterID)
 }
 
 func (v Vmess) String() string {
@@ -151,6 +158,33 @@ func (v Vmess) Link() (link string) {
 		return
 	}
 	return fmt.Sprintf("vmess://%s", tool.Base64EncodeBytes(vjv))
+}
+
+func (v *Vmess) ConvToNew() {
+	switch v.Network {
+	case "ws":
+		// if v.WSPath != "" && v.WSOpts.Path == "" {
+		// 	v.WSOpts.Path = v.WSPath
+		// 	v.WSPath = ""
+		// }
+	
+		// if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
+		// 	v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
+		// 	for key, value := range v.WSHeaders {
+		// 		v.WSOpts.Headers[key] = value
+		// 	}
+		// 	v.WSHeaders = make(map[string]string)
+		// }
+	case "h2":
+		if !v.TLS {
+			v.TLS = true
+		}
+	case "grpc":
+		if !v.TLS {
+			v.TLS = true
+		}
+	default:
+	}
 }
 
 type vmessLinkJson struct {
@@ -426,20 +460,20 @@ func GrepVmessLinkFromString(text string) []string {
 	return results
 }
 
-func str2jsonDynaUnmarshal(s string) (jsn map[string]any, err error) {
-	var f any
+func str2jsonDynaUnmarshal(s string) (jsn map[string]interface{}, err error) {
+	var f interface{}
 	err = json.Unmarshal([]byte(s), &f)
 	if err != nil {
 		return nil, err
 	}
-	jsn, ok := f.(any).(map[string]any) // f is pointer point to map struct
+	jsn, ok := f.(map[string]interface{}) // f is pointer point to map struct
 	if !ok {
 		return nil, ErrorVmessPayloadParseFail
 	}
 	return jsn, err
 }
 
-func mapStrInter2VmessLinkJson(jsn map[string]any) (vmessLinkJson, error) {
+func mapStrInter2VmessLinkJson(jsn map[string]interface{}) (vmessLinkJson, error) {
 	vmess := vmessLinkJson{}
 	var err error
 

@@ -1,7 +1,7 @@
 package getter
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"strconv"
 	"sync"
@@ -65,7 +65,7 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 			break
 		}
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			break
 		}
@@ -111,14 +111,7 @@ func (g *TGGroupGetter) Get() proxy.ProxyList {
 func (g *TGGroupGetter) Get2ChanWG(pc chan proxy.Proxy, wg *sync.WaitGroup) {
 	defer wg.Done()
 	nodes := g.Get()
-	log.Infoln("STATISTIC: TGGroup   \tcount=%-5d\turl=%s\n", len(nodes), g.Url)
-	for _, node := range nodes {
-		pc <- node
-	}
-}
-func (g *TGGroupGetter) Get2Chan(pc chan proxy.Proxy) {
-	nodes := g.Get()
-	log.Infoln("STATISTIC: TGGroup   \tcount=%-5d\turl=%s\n", len(nodes), g.Url)
+	log.Infoln("STATISTIC: TGGroup   \tcount=%-5d\turl=%s", len(nodes), g.Url)
 	for _, node := range nodes {
 		pc <- node
 	}

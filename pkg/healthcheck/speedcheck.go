@@ -135,7 +135,7 @@ func SpeedTestNew(proxies []proxy.Proxy) {
 // ProxySpeedTest returns a speed result of a proxy. The speed result is like 20Mbit/s. -1 for error.
 func ProxySpeedTest(p proxy.Proxy) (speedResult float64, err error) {
 	// convert to clash proxy struct
-	pmap := make(map[string]any)
+	pmap := make(map[string]interface{})
 	err = json.Unmarshal([]byte(p.String()), &pmap)
 	if err != nil {
 		return -1, err

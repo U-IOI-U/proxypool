@@ -333,7 +333,7 @@ func setupRouter() {
 	router.GET("/update", func(c *gin.Context) {
 		if config.Config.RouteUpdateApi {
 			go func () {
-				err := app.InitConfigAndGetters("")
+				err := app.InitConfigAndGetters()
 				if err != nil {
 					log.Errorln("[cron.go] config parse error: %s", err)
 				}

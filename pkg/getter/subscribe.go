@@ -97,7 +97,7 @@ func (s *Subscribe) GetAndBlock() proxy.ProxyList {
 
 // Get() of Subscribe is to implement Getter interface
 func (s *Subscribe) Get() proxy.ProxyList {
-	if tool.SubScribeHistoryCheckUrlIn(s.Url) { 
+	if tool.SubScribeHistoryCheckUrlIn(s.Url) {
 		return nil
 	}
 	tool.SubScribeHistoryUpdateRet(s.Url, 0)
@@ -115,7 +115,7 @@ func (s *Subscribe) Get() proxy.ProxyList {
 func (s *Subscribe) Get2ChanWG(pc chan proxy.Proxy, wg *sync.WaitGroup) {
 	defer wg.Done()
 	nodes := s.Get()
-	log.Infoln("STATISTIC: Subscribe \tcount=%-5d\turl=%s\n", len(nodes), s.Url)
+	log.Infoln("STATISTIC: Subscribe \tcount=%-5d\turl=%s", len(nodes), s.Url)
 	for _, node := range nodes {
 		pc <- node
 	}

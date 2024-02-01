@@ -39,7 +39,7 @@ func CrawlGoWithSync() {
 	log.Debugln("CrawlGo: is ended after %s!", cost)
 
 	// 运行到这里的只有一个线程,不用加锁了
-	isCrawlGoRunning = false 
+	isCrawlGoRunning = false
 }
 
 func CrawlGo(pGetters PGetterList) {
