@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"github.com/ssrlive/proxypool/pkg/geoIp"
+	"github.com/u-ioi-u/proxypool/pkg/geoIp"
 )
 
 type ProxyList []Proxy

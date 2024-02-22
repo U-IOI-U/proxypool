@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ssrlive/proxypool/log"
-	"github.com/ssrlive/proxypool/pkg/healthcheck"
+	"github.com/u-ioi-u/proxypool/log"
+	"github.com/u-ioi-u/proxypool/pkg/healthcheck"
 
-	"github.com/ssrlive/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
 )
 
 type Provider interface {

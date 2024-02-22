@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"strings"
-	"github.com/ssrlive/proxypool/log"
+	"github.com/u-ioi-u/proxypool/log"
 )
 
 type HistoryInfo struct {

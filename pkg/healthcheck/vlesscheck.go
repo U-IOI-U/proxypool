@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	C "github.com/metacubex/mihomo/constant"
-	// "github.com/ssrlive/proxypool/pkg/proxy"
+	// "github.com/u-ioi-u/proxypool/pkg/proxy"
 	// "io/ioutil"
 	"net"
 	"net/http"

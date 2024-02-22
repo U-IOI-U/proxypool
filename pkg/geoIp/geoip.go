@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/oschwald/geoip2-golang"
-	"github.com/ssrlive/proxypool/config"
+	"github.com/u-ioi-u/proxypool/config"
 )
 
 var GeoIpDB GeoIP

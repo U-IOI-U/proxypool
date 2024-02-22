@@ -5,11 +5,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ssrlive/proxypool/log"
+	"github.com/u-ioi-u/proxypool/log"
 
 	"github.com/gocolly/colly"
-	"github.com/ssrlive/proxypool/pkg/proxy"
-	"github.com/ssrlive/proxypool/pkg/tool"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 func init() {

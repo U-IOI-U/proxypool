@@ -5,10 +5,10 @@ import (
 	"strings"
 	"sync"
 	"gopkg.in/yaml.v3"
-	"github.com/ssrlive/proxypool/log"
+	"github.com/u-ioi-u/proxypool/log"
 
-	"github.com/ssrlive/proxypool/pkg/proxy"
-	"github.com/ssrlive/proxypool/pkg/tool"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 // Add key value pair to creatorMap(string → creator) in base.go

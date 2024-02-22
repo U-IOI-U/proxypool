@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	C "github.com/Dreamacro/clash/constant"
-	"github.com/ssrlive/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
 	"io"
 	"net"
 	"net/http"

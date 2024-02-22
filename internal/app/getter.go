@@ -4,14 +4,14 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/ssrlive/proxypool/log"
+	"github.com/u-ioi-u/proxypool/log"
 
-	"github.com/ssrlive/proxypool/internal/cache"
+	"github.com/u-ioi-u/proxypool/internal/cache"
 
 	"github.com/ghodss/yaml"
 
-	"github.com/ssrlive/proxypool/config"
-	"github.com/ssrlive/proxypool/pkg/getter"
+	"github.com/u-ioi-u/proxypool/config"
+	"github.com/u-ioi-u/proxypool/pkg/getter"
 )
 
 type PGetterList *[]getter.Getter

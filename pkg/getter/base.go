@@ -5,9 +5,9 @@ import (
 	"sync"
 	"regexp"
 	"strings"
-	C "github.com/ssrlive/proxypool/config"
-	"github.com/ssrlive/proxypool/pkg/proxy"
-	"github.com/ssrlive/proxypool/pkg/tool"
+	C "github.com/u-ioi-u/proxypool/config"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 // functions for getters

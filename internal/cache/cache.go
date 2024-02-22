@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/patrickmn/go-cache"
-	"github.com/ssrlive/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
 )
 
 var c = cache.New(cache.NoExpiration, 10*time.Minute)

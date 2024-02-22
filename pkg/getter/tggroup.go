@@ -7,10 +7,10 @@ import (
 	"sync"
 	"html"
 
-	"github.com/ssrlive/proxypool/log"
-	C "github.com/ssrlive/proxypool/config"
-	"github.com/ssrlive/proxypool/pkg/proxy"
-	"github.com/ssrlive/proxypool/pkg/tool"
+	"github.com/u-ioi-u/proxypool/log"
+	C "github.com/u-ioi-u/proxypool/config"
+	"github.com/u-ioi-u/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/tool"
 	"github.com/gocolly/colly"
 )
 
