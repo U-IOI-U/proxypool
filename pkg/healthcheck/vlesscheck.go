@@ -3,14 +3,16 @@ package healthcheck
 import (
 	"context"
 	"fmt"
-	C "github.com/U-IOI-U/clash_meta/constant"
+	C "github.com/metacubex/mihomo/constant"
 	// "github.com/ssrlive/proxypool/pkg/proxy"
 	// "io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
+	"net/netip"
 	"time"
-	clash_vless "github.com/U-IOI-U/clash_meta/adapter"
+	"strconv"
+	clash_vless "github.com/metacubex/mihomo/adapter"
 )
 
 func ParseVless(pmap map[string]any) (C.Proxy, error) {
@@ -36,12 +38,11 @@ func _urlToMetadata(rawURL string) (addr C.Metadata, err error) {
 			return
 		}
 	}
-
+	num16, _ := strconv.ParseUint(port, 10, 16)
 	addr = C.Metadata{
-		AddrType: C.AtypDomainName,
 		Host:     u.Hostname(),
-		DstIP:    nil,
-		DstPort:  port,
+		DstIP:    netip.Addr{},
+		DstPort:  uint16(num16),
 	}
 	return
 }
