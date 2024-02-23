@@ -24,7 +24,6 @@ type Trojan struct {
 	ALPN           []string `yaml:"alpn,omitempty" json:"alpn,omitempty"`
 	SNI            string   `yaml:"sni,omitempty" json:"sni,omitempty"`
 	SkipCertVerify bool     `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
-	UDP            bool     `yaml:"udp,omitempty" json:"udp,omitempty"`
 	Network        string   `yaml:"network,omitempty" json:"network,omitempty"`
 	GrpcOpts       GrpcOptions `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	WSOpts         WSOptions   `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
@@ -148,11 +147,11 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			Server: server,
 			Port:   port,
 			Type:   "trojan",
+			UDP:    true,
 		},
 		Password:       password,
 		ALPN:           alpn,
 		SNI:            sni,
-		UDP:            true,
 		SkipCertVerify: true,
 	}, nil
 }
