@@ -1,7 +1,10 @@
 name: Manual Build
 on:
   workflow_dispatch:
-
+  push:
+    branches: [ 0.7.13 ]
+  pull_request:
+    branches: [ 0.7.13 ]
 jobs:
 
   build:

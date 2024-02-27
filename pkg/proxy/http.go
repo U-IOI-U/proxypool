@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrorNotHttpink = errors.New("not a correct http link")
+	ErrorNotHttpLink = errors.New("not a correct http link")
 )
 
 type CHttp struct {
@@ -70,23 +70,23 @@ func (t CHttp) Link() (link string) {
 
 func ParseHttpLink(link string) (*CHttp, error) {
 	if !strings.HasPrefix(link, "https://") {
-		return nil, ErrorNotHttpink
+		return nil, ErrorNotHttpLink
 	}
 
 	uri, err := url.Parse(link)
 	if err != nil {
-		return nil, ErrorNotHttpink
+		return nil, ErrorNotHttpLink
 	}
 
 	username := uri.User.Username()
 	username, _ = url.QueryUnescape(username)
 	password, isSetPass := uri.User.Password()
 	if isSetPass == false {
-		return nil, ErrorNotHttpink
+		return nil, ErrorNotHttpLink
 	}
 	password, _ = url.QueryUnescape(password)
 	if len(username) == 0 || len(password) == 0 {
-		return nil, ErrorNotHttpink
+		return nil, ErrorNotHttpLink
 	}
 	
 	server := uri.Hostname()
@@ -97,7 +97,7 @@ func ParseHttpLink(link string) (*CHttp, error) {
 	sni, _ = url.QueryUnescape(sni)
 
 	if port == 0 {
-		return nil, ErrorNotHttpink
+		return nil, ErrorNotHttpLink
 	}
 
 	return &CHttp{

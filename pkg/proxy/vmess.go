@@ -26,35 +26,18 @@ type Vmess struct {
 	AlterID        int          `yaml:"alterId" json:"alterId"`
 	Cipher         string       `yaml:"cipher" json:"cipher"`
 	Network        string       `yaml:"network,omitempty" json:"network,omitempty"`
-	ServerName     string       `yaml:"servername,omitempty" json:"servername,omitempty"`
-	HTTPOpts       HTTPOptions  `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
-	HTTP2Opts      HTTP2Options `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	CFingerPrint   string       `yaml:"client-fingerprint,omitempty" json:"client-fingerprint,omitempty"`
+	ALPN           []string     `yaml:"alpn,omitempty" json:"alpn,omitempty"`
+	SNI            string       `yaml:"servername,omitempty" json:"servername,omitempty"`
 	TLS            bool         `yaml:"tls,omitempty" json:"tls,omitempty"`
 	SkipCertVerify bool         `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
-	WSOpts         *WSOptions   `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
-	GRPCOpts       GrpcOptions  `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
-}
 
-type WSOptions struct {
-	Path    string            `yaml:"path,omitempty" json:"path,omitempty"`
-	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
-	EarlyDataMax    int       `yaml:"max-early-data,omitempty" json:"max-early-data,omitempty"`
-	EarlyDataHeader string    `yaml:"early-data-header-name,omitempty" json:"early-data-header-name,omitempty"`
-}
-
-type HTTPOptions struct {
-	Method  string              `yaml:"method,omitempty" json:"method,omitempty"`
-	Path    []string            `yaml:"path,omitempty" json:"path,omitempty"`
-	Headers map[string][]string `yaml:"headers,omitempty" json:"headers,omitempty"`
-}
-
-type HTTP2Options struct {
-	Host []string `yaml:"host,omitempty" json:"host,omitempty"`
-	Path string   `yaml:"path,omitempty" json:"path,omitempty"` // 暂只处理一个Path
-}
-
-type GrpcOptions struct {
-	GrpcServiceName string `yaml:"grpc-service-name,omitempty" json:"grpc-service-name,omitempty"`
+	TcpOpts        *TCPOptions   `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+	HTTPOpts       *HTTPOptions  `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
+	H2Opts         *HTTP2Options `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	GrpcOpts       *GrpcOptions  `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
+	WSOpts         *WSOptions    `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	QuicOpts       *QUICOptions  `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 }
 
 func (v *Vmess) UnmarshalJSON(data []byte) error {
@@ -64,12 +47,19 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 		AlterID        int               `yaml:"alterId" json:"alterId"`
 		Cipher         string            `yaml:"cipher" json:"cipher"`
 		Network        string            `yaml:"network,omitempty" json:"network,omitempty"`
-		ServerName     string            `yaml:"servername,omitempty" json:"servername,omitempty"`
-		HTTPOpts       HTTPOptions       `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
-		HTTP2Opts      HTTP2Options      `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+		CFingerPrint   string            `yaml:"client-fingerprint,omitempty" json:"client-fingerprint,omitempty"`
+		ALPN           []string          `yaml:"alpn,omitempty" json:"alpn,omitempty"`
+		SNI            string            `yaml:"servername,omitempty" json:"servername,omitempty"`
 		TLS            bool              `yaml:"tls,omitempty" json:"tls,omitempty"`
 		SkipCertVerify bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
-		WSOpts         WSOptions         `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+
+		TcpOpts        *TCPOptions       `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+		HTTPOpts       *HTTPOptions      `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
+		H2Opts         *HTTP2Options     `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+		GrpcOpts       *GrpcOptions      `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
+		WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+		QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
+
 		WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
 		WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
 	}{}
@@ -84,22 +74,70 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 	v.AlterID = tmp.AlterID
 	v.Cipher = tmp.Cipher
 	v.Network = tmp.Network
-	v.ServerName = tmp.ServerName
-	v.HTTPOpts = tmp.HTTPOpts
-	v.HTTP2Opts = tmp.HTTP2Opts
+	v.CFingerPrint = tmp.CFingerPrint
+	v.ALPN = tmp.ALPN
+	v.SNI = tmp.SNI
 	v.TLS = tmp.TLS
 	v.SkipCertVerify = tmp.SkipCertVerify
-	if tmp.Network == "ws" {
-		if tmp.WSOpts.Path == "" {
-			tmp.WSOpts.Path = tmp.WSPath
+
+	switch tmp.Network {
+	case "ws":
+		wsopts := WSOptions{}
+		if tmp.WSPath != "" {
+			wsopts.Path = tmp.WSPath
 		}
-		if tmp.WSOpts.Headers == nil {
-			tmp.WSOpts.Headers = tmp.WSHeaders
+		if tmp.WSOpts != nil && tmp.WSOpts.Path != "" {
+			wsopts.Path = tmp.WSOpts.Path
 		}
-		v.WSOpts = &WSOptions{
-			Path:    tmp.WSOpts.Path,
-			Headers: tmp.WSOpts.Headers,
+
+		if len(tmp.WSHeaders) > 0 {
+			wsopts.Headers = tmp.WSHeaders
 		}
+		if tmp.WSOpts != nil && len(tmp.WSOpts.Headers) > 0 {
+			wsopts.Headers = tmp.WSOpts.Headers
+		}
+
+		if !(wsopts.Path == "" && len(wsopts.Headers) == 0) {
+			v.WSOpts = &wsopts
+		}
+		break
+	case "grpc":
+		if tmp.GrpcOpts != nil {
+			if !(tmp.GrpcOpts.GrpcServiceName == "" && tmp.GrpcOpts.Mode == "") {
+				v.GrpcOpts = tmp.GrpcOpts
+			}
+		}
+		break
+	case "h2":
+		if tmp.H2Opts != nil {
+			if !(tmp.H2Opts.Path == "" && len(tmp.H2Opts.Host) == 0) {
+				v.H2Opts = tmp.H2Opts
+			}
+		}
+		break
+	case "quic":
+		if tmp.QuicOpts != nil {
+			if !(tmp.QuicOpts.Type == "" && tmp.QuicOpts.Security == "" && tmp.QuicOpts.Key == "") {
+				v.QuicOpts = tmp.QuicOpts
+			}
+		}
+		break
+	case "http":
+		if tmp.HTTPOpts != nil {
+			if !(tmp.HTTPOpts.Method == "" && len(tmp.HTTPOpts.Path) == 0 && len(tmp.HTTPOpts.Headers) == 0) {
+				v.HTTPOpts = tmp.HTTPOpts
+			}
+		}
+		break
+	case "tcp":
+	default:
+		v.Network = "tcp"
+		if tmp.TcpOpts != nil {
+			if !((tmp.TcpOpts.Type == "" || tmp.TcpOpts.Type == "none") && tmp.TcpOpts.Host == "" && tmp.TcpOpts.Path == "") {
+				v.TcpOpts = tmp.TcpOpts
+			}
+		}
+		break
 	}
 
 	return nil
@@ -160,33 +198,6 @@ func (v Vmess) Link() (link string) {
 	return fmt.Sprintf("vmess://%s", tool.Base64EncodeBytes(vjv))
 }
 
-func (v *Vmess) ConvToNew() {
-	switch v.Network {
-	case "ws":
-		// if v.WSPath != "" && v.WSOpts.Path == "" {
-		// 	v.WSOpts.Path = v.WSPath
-		// 	v.WSPath = ""
-		// }
-	
-		// if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
-		// 	v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
-		// 	for key, value := range v.WSHeaders {
-		// 		v.WSOpts.Headers[key] = value
-		// 	}
-		// 	v.WSHeaders = make(map[string]string)
-		// }
-	case "h2":
-		if !v.TLS {
-			v.TLS = true
-		}
-	case "grpc":
-		if !v.TLS {
-			v.TLS = true
-		}
-	default:
-	}
-}
-
 type vmessLinkJson struct {
 	Add  string `json:"add"`
 	V    string `json:"v"`
@@ -194,11 +205,15 @@ type vmessLinkJson struct {
 	Port int    `json:"port"`
 	Id   string `json:"id"`
 	Aid  string `json:"aid"`
+	Scy  string `json:"scy"`
 	Net  string `json:"net"`
 	Type string `json:"type"`
 	Host string `json:"host"`
 	Path string `json:"path"`
 	Tls  string `json:"tls"`
+	SNI  string `json:"sni"`
+	ALPN string `json:"alpn"`
+	Fp   string `json:"fp"`
 }
 
 func (v Vmess) toLinkJson() vmessLinkJson {
@@ -208,19 +223,77 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 		Port: v.Port,
 		Id:   v.UUID,
 		Aid:  strconv.Itoa(v.AlterID),
+		Scy:  v.Cipher,
 		Net:  v.Network,
-		Host: v.ServerName,
+		SNI:  v.SNI,
+		Fp:   v.CFingerPrint,
 		V:    "2",
 	}
 	if v.TLS {
 		vj.Tls = "tls"
 	}
-	if v.WSOpts != nil {
-		vj.Path = v.WSOpts.Path
-		if host, ok := v.WSOpts.Headers["HOST"]; ok && host != "" {
-			vj.Host = host
-		}
+	if len(v.ALPN) > 0 {
+		vj.ALPN = strings.Join(v.ALPN, ",")
 	}
+	switch v.Network {
+	case "ws":
+		if v.WSOpts != nil {
+			vj.Type = "none"
+			vj.Path =  v.WSOpts.Path
+			if len(v.WSOpts.Headers) > 0 {
+				vj.Host = v.WSOpts.Headers["Host"]
+			}
+		}
+		break
+	case "grpc":
+		if v.GrpcOpts != nil {
+			vj.Type = v.GrpcOpts.Mode
+			vj.Path = v.GrpcOpts.GrpcServiceName
+		}
+		break
+	case "h2":
+		if v.H2Opts != nil {
+			vj.Type = "none"
+			vj.Path =  v.H2Opts.Path
+			if len(v.H2Opts.Host) > 0 {
+				vj.Host = v.H2Opts.Host[0]
+			}
+		}
+		break
+	case "quic":
+		if v.QuicOpts != nil {
+			vj.Type = v.QuicOpts.Type
+			vj.Host = v.QuicOpts.Security
+			vj.Path = v.QuicOpts.Key
+		}
+		break
+	case "http":
+		if v.HTTPOpts != nil {
+			vj.Type = v.HTTPOpts.Method
+			if len(v.HTTPOpts.Path) > 0 {
+				vj.Path = v.HTTPOpts.Path[0]
+			}
+			if len(v.HTTPOpts.Headers) > 0 {
+				if headers, ok := v.HTTPOpts.Headers["Host"]; ok {
+					if len(headers) > 0 {
+						vj.Host = headers[0]
+					}
+				}
+			}
+		}
+		break
+	case "tcp":
+	default:
+		if v.TcpOpts != nil {
+			vj.Type = v.TcpOpts.Type
+			vj.Host = v.TcpOpts.Host
+			vj.Path = v.TcpOpts.Path
+		} else {
+			vj.Type = "none"
+		}
+		break
+	}
+
 	return vj
 }
 
@@ -276,51 +349,53 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		remarks := moreInfo.Get("remarks")
 
 		// Transmission protocol
-		wsHeaders := make(map[string]string)
-		h2Opt := HTTP2Options{
-			Host: make([]string, 0),
-		}
-		httpOpt := HTTPOptions{}
-
 		// Network <- obfs=websocket
 		obfs := moreInfo.Get("obfs")
-		network := "tcp"
-		if obfs == "http" {
-			httpOpt.Method = "GET" // 不知道Headers为空时会不会报错
-		}
-		if obfs == "websocket" {
-			network = "ws"
-		} else { // when http h2
-			network = obfs
-		}
-		// HTTP Object: Host <- obfsParam=www.036452916.xyz
+		network := obfs
 		host := moreInfo.Get("obfsParam")
-		if host != "" {
-			switch obfs {
-			case "websocket":
-				wsHeaders["Host"] = host
-			case "h2":
-				h2Opt.Host = append(h2Opt.Host, host)
-			}
-		}
-		// HTTP Object: Path
 		path := moreInfo.Get("path")
-		if path == "" {
-			path = "/"
-		}
+		tls := moreInfo.Get("tls") == "1"
+
+		var httpOpt *HTTPOptions
+		var h2opts *HTTP2Options
+		var wsopts *WSOptions
 		switch obfs {
-		case "h2":
-			h2Opt.Path = path
-			path = ""
 		case "http":
-			httpOpt.Path = append(httpOpt.Path, path)
-			path = ""
+			httpOpt.Method = "GET" // 不知道Headers为空时会不会报错
+			if !(path == "") {
+				httpOpt = &HTTPOptions{
+					Method: "GET",
+				}
+				httpOpt.Path = []string{path}
+			}
+			break
+		case "websocket":
+			network = "ws"
+			if !(host == "" && path == "") {
+				wsopts = &WSOptions{
+					Path: path,
+				}
+				if host != "" {
+					wsopts.Headers = make(map[string]string, 0)
+					wsopts.Headers["Host"] = host
+				}
+			}
+			break
+		case "h2":
+			if !(host == "" && path == "") {
+				h2opts = &HTTP2Options{
+					Path: path,
+				}
+				if host != "" {
+					h2opts.Host = []string{host}
+				}
+			}
+			tls = true
+			break
 		}
 
-		tls := moreInfo.Get("tls") == "1"
-		if obfs == "h2" {
-			tls = true
-		}
+		// HTTP Object: Host <- obfsParam=www.036452916.xyz
+		// HTTP Object: Path
 		// allowInsecure=1 Clash config unsuported
 		// alterId=64
 		aid := 0
@@ -340,18 +415,14 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			UUID:           uuid,
 			AlterID:        aid,
 			Cipher:         cipher,
-			TLS:            tls,
 			Network:        network,
-			HTTPOpts:       httpOpt,
-			HTTP2Opts:      h2Opt,
+			SNI:            server,
+			TLS:            tls,
 			SkipCertVerify: true,
-			ServerName:     server,
-		}
-		if v.Network == "ws" {
-			v.WSOpts = &WSOptions{
-				Path:    path,
-				Headers: wsHeaders,
-			}
+
+			HTTPOpts:       httpOpt,
+			H2Opts:         h2opts,
+			WSOpts:         wsopts,
 		}
 
 		return &v, nil
@@ -379,39 +450,96 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		if err != nil {
 			alterId = 0
 		}
+
+		if vmessJson.Scy == "" {
+			vmessJson.Scy = "auto"
+		}
+
 		tls := vmessJson.Tls == "tls"
 
-		if vmessJson.Net == "h2" {
-			tls = true
-		}
-
-		wsHeaders := make(map[string]string)
-		h2Opt := HTTP2Options{}
-		httpOpt := HTTPOptions{}
-
-		if vmessJson.Net == "http" {
-			httpOpt.Method = "GET" // 不知道Headers为空时会不会报错
-		}
-
-		if vmessJson.Host != "" {
-			switch vmessJson.Net {
-			case "h2":
-				h2Opt.Host = append(h2Opt.Host, vmessJson.Host) // 不知道为空时会不会报错
-			case "ws":
-				wsHeaders["HOST"] = vmessJson.Host
+		alpn := make([]string, 0)
+		alpnStr := vmessJson.ALPN
+		if alpnStr != "" {
+			for _, value := range strings.Split(alpnStr, ",") {
+				if value == "" {
+					continue
+				}
+				alpn = append(alpn, value)
 			}
 		}
 
-		if vmessJson.Path == "" {
-			vmessJson.Path = "/"
-		}
+		var tcpopts *TCPOptions
+		var wsopts *WSOptions
+		var httpopts *HTTPOptions
+		var h2opts *HTTP2Options
+		var grpcopts *GrpcOptions
+		var quicopts *QUICOptions
 		switch vmessJson.Net {
+		case "ws":
+			if !(vmessJson.Host == "" && vmessJson.Path == "") {
+				wsopts = &WSOptions{
+					Path: vmessJson.Path,
+				}
+				if vmessJson.Host != "" {
+					wsopts.Headers = make(map[string]string, 0)
+					wsopts.Headers["Host"] = vmessJson.Host
+				}
+			}
+			break
+		case "grpc":
+			if !(vmessJson.Type == "" && vmessJson.Path == "") {
+				grpcopts = &GrpcOptions{
+					GrpcServiceName: vmessJson.Path,
+					Mode:            vmessJson.Type,
+				}
+			}
+			tls = true
+			break
 		case "h2":
-			h2Opt.Path = vmessJson.Path
-			vmessJson.Path = ""
+			if !(vmessJson.Host == "" && vmessJson.Path == "") {
+				h2opts = &HTTP2Options{
+					Path: vmessJson.Path,
+				}
+				if vmessJson.Host != "" {
+					h2opts.Host = []string{vmessJson.Host}
+				}
+			}
+			tls = true
+			break
+		case "quic":
+			if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {
+				quicopts = &QUICOptions{
+					Type:     vmessJson.Type,
+					Security: vmessJson.Host,
+					Key:      vmessJson.Path,
+				}
+			}
+			break
 		case "http":
-			httpOpt.Path = append(httpOpt.Path, vmessJson.Path)
-			vmessJson.Path = ""
+			if !(vmessJson.Type == "" && vmessJson.Host == "" && vmessJson.Path == "") {
+				httpopts = &HTTPOptions{
+					Method: vmessJson.Type,
+				}
+				if vmessJson.Host != "" {
+					httpopts.Headers = make(map[string][]string, 0)
+					httpopts.Headers["Host"] = []string{vmessJson.Host}
+				}
+				if vmessJson.Path != "" {
+					httpopts.Path = []string{vmessJson.Path}
+				}
+			}
+			break
+		case "tcp":
+		default:
+			vmessJson.Net = "tcp"
+			if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {
+				tcpopts = &TCPOptions{
+					Type: vmessJson.Type,
+					Host: vmessJson.Host,
+					Path: vmessJson.Path,
+				}
+			}
+			break
 		}
 
 		v := Vmess{
@@ -420,24 +548,24 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				Server: vmessJson.Add,
 				Port:   vmessJson.Port,
 				Type:   "vmess",
-				UDP:    false,
+				UDP:    true,
 			},
 			UUID:           vmessJson.Id,
 			AlterID:        alterId,
-			Cipher:         "auto",
+			Cipher:         vmessJson.Scy,
 			Network:        vmessJson.Net,
-			HTTPOpts:       httpOpt,
-			HTTP2Opts:      h2Opt,
-			ServerName:     vmessJson.Host,
+			CFingerPrint:   vmessJson.Fp,
+			ALPN:           alpn,
+			SNI:            vmessJson.SNI,
 			TLS:            tls,
 			SkipCertVerify: true,
-		}
 
-		if v.Network == "ws" {
-			v.WSOpts = &WSOptions{
-				Path:    vmessJson.Path,
-				Headers: wsHeaders,
-			}
+			TcpOpts:        tcpopts,
+			HTTPOpts:       httpopts,
+			H2Opts:         h2opts,
+			GrpcOpts:       grpcopts,
+			WSOpts:         wsopts,
+			QuicOpts:       quicopts,
 		}
 
 		return &v, nil

@@ -306,8 +306,9 @@ func setupRouter() {
 		}
 		if id >= proxies.Len() || id < 0 {
 			c.String(500, "id out of range")
+		} else {
+			c.String(200, proxies[id].Link())
 		}
-		c.String(200, proxies[id].Link())
 	})
 	router.GET("/history/:mode", func(c *gin.Context) {
 		if config.Config.RouteHistoryApi {

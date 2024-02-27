@@ -12,15 +12,18 @@ import (
 var (
 	level      = INFO
 	fileLogger = log.New()
+	defLogger  = log.New()
 	fileMux    = sync.Mutex{}
 )
 
 func init() {
-	log.SetFormatter(&prefixed.TextFormatter{
+	defLogger.SetFormatter(&prefixed.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
 		ForceFormatting: true,
 	})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	defLogger.SetOutput(os.Stdout)
+	defLogger.SetLevel(log.InfoLevel)
 	fileLogger.SetFormatter(&prefixed.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -32,27 +35,27 @@ func init() {
 
 func SetLevel(l LogLevel) {
 	level = l
-	log.SetLevel(levelMapping[level])
+	defLogger.SetLevel(levelMapping[level])
 }
 
 func Traceln(format string, v ...interface{}) {
-	log.Traceln(fmt.Sprintf(format, v...))
+	defLogger.Traceln(fmt.Sprintf(format, v...))
 }
 
 func Debugln(format string, v ...interface{}) {
-	log.Debugln(fmt.Sprintf(format, v...))
+	defLogger.Debugln(fmt.Sprintf(format, v...))
 }
 
 func Infoln(format string, v ...interface{}) {
-	log.Infoln(fmt.Sprintf(format, v...))
+	defLogger.Infoln(fmt.Sprintf(format, v...))
 }
 
 func Warnln(format string, v ...interface{}) {
-	log.Warnln(fmt.Sprintf(format, v...))
+	defLogger.Warnln(fmt.Sprintf(format, v...))
 }
 
 func Errorln(format string, v ...interface{}) {
-	log.Errorln(fmt.Sprintf(format, v...))
+	defLogger.Errorln(fmt.Sprintf(format, v...))
 }
 
 func Fileln(l LogLevel, data string) {

@@ -55,7 +55,7 @@ func (ss Shadowsocks) ToSurge() string {
 	if ss.Plugin == "obfs" {
 		text := fmt.Sprintf("%s = ss, %s, %d, encrypt-method=%s, password=%s, obfs=%s, udp-relay=false",
 			ss.Name, ss.Server, ss.Port, ss.Cipher, ss.Password, ss.PluginOpts["mode"])
-		if ss.PluginOpts["host"].(string) != "" {
+		if ss.PluginOpts["host"] != nil && ss.PluginOpts["host"].(string) != "" {
 			text += ", obfs-host=" + ss.PluginOpts["host"].(string)
 		}
 		return text
@@ -72,9 +72,57 @@ func (ss Shadowsocks) Clone() Proxy {
 // https://shadowsocks.org/en/config/quick-guide.html
 // Link converts a ss proxy to string
 func (ss Shadowsocks) Link() (link string) {
-	payload := fmt.Sprintf("%s:%s@%s:%d", ss.Cipher, ss.Password, ss.Server, ss.Port)
-	payload = tool.Base64EncodeString(payload, false)
-	return fmt.Sprintf("ss://%s#%s", payload, ss.Name)
+	query := url.Values{}
+
+	if ss.Plugin != "" {
+		plugins := make([]string, 0)
+		switch ss.Plugin {
+		case "obfs":
+			plugins = append(plugins, "obfs-local")
+			if obfs, ok := ss.PluginOpts["mode"]; ok {
+				plugins = append(plugins, "obfs=" + obfs.(string))
+			}
+			if obfsHost, ok := ss.PluginOpts["host"]; ok {
+				plugins = append(plugins, "obfs-host=" + obfsHost.(string))
+			}
+			break
+		case "v2ray-plugin":
+			plugins = append(plugins, "v2ray-plugin")
+			if obfs, ok := ss.PluginOpts["mode"]; ok {
+				plugins = append(plugins, "mode=" + obfs.(string))
+			}
+			if obfsHost, ok := ss.PluginOpts["host"]; ok {
+				plugins = append(plugins, "host=" + obfsHost.(string))
+			}
+			if obfsPath, ok := ss.PluginOpts["path"]; ok {
+				plugins = append(plugins, "path=" + obfsPath.(string))
+			}
+			if obfsTls, ok := ss.PluginOpts["tls"]; ok {
+				if obfsTls.(bool) {
+					plugins = append(plugins, "tls")
+				}
+			}
+		case "shadow-tls":
+		case "restls":
+		}
+		if len(plugins) > 0 {
+			query.Set("plugin", strings.Join(plugins, ";"))
+		}
+	}
+
+	uri := url.URL{
+		Scheme:   "ss",
+		User:     url.User(strings.TrimRight(tool.Base64EncodeString(fmt.Sprintf("%s:%s", ss.Cipher, ss.Password), false), "=")),
+		Host:     net.JoinHostPort(ss.Server, strconv.Itoa(ss.Port)),
+		RawQuery: query.Encode(),
+		Fragment: ss.Name,
+	}
+
+	return uri.String()
+
+	// payload := fmt.Sprintf("%s:%s@%s:%d", ss.Cipher, ss.Password, ss.Server, ss.Port)
+	// payload = tool.Base64EncodeString(payload, false)
+	// return fmt.Sprintf("ss://%s#%s", payload, ss.Name)
 }
 
 // ParseSSLink() parses an ss link to ss proxy
@@ -124,19 +172,38 @@ func ParseSSLink(link string) (*Shadowsocks, error) {
 	plugin := ""
 	pluginOpts := make(map[string]interface{})
 	if strings.Contains(pluginString, ";") {
-		pluginInfos, err := url.ParseQuery(pluginString)
+		pluginInfos, err := url.ParseQuery("plugin=" + strings.ReplaceAll(pluginString, ";", "&"))
 		if err == nil {
-			if strings.Contains(pluginString, "obfs") {
+			plugin = pluginInfos.Get("plugin")
+			switch plugin {
+			case "obfs":
+			case "obfs-local":
 				plugin = "obfs"
-				pluginOpts["mode"] = pluginInfos.Get("obfs")
-				pluginOpts["host"] = pluginInfos.Get("obfs-host")
-			} else if strings.Contains(pluginString, "v2ray") {
-				plugin = "v2ray-plugin"
-				pluginOpts["mode"] = pluginInfos.Get("mode")
-				pluginOpts["host"] = pluginInfos.Get("host")
-				pluginOpts["tls"] = strings.Contains(pluginString, "tls")
+				if _mode := pluginInfos.Get("obfs"); _mode != "" {
+					pluginOpts["mode"] = _mode
+				}
+				if _host := pluginInfos.Get("obfs-host"); _host != "" {
+					pluginOpts["host"] = _host
+				}
+				break
+			case "v2ray-plugin":
+				if _mode := pluginInfos.Get("mode"); _mode != "" {
+					pluginOpts["mode"] = _mode
+				}
+				if _host := pluginInfos.Get("host"); _host != "" {
+					pluginOpts["host"] = _host
+				}
+				if _path := pluginInfos.Get("path"); _path != "" {
+					pluginOpts["path"] = _path
+				}
+				if strings.Contains(pluginString, "tls") {
+					pluginOpts["tls"] = true
+				}
+				break
 			}
 		}
+	} else {
+		plugin = pluginString
 	}
 	if port == 0 || cipher == "" {
 		return nil, ErrorNotSSLink
@@ -148,6 +215,7 @@ func ParseSSLink(link string) (*Shadowsocks, error) {
 			Server: server,
 			Port:   port,
 			Type:   "ss",
+			UDP:    true,
 		},
 		Password:   password,
 		Cipher:     cipher,

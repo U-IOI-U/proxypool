@@ -25,8 +25,14 @@ type Trojan struct {
 	SNI            string   `yaml:"sni,omitempty" json:"sni,omitempty"`
 	SkipCertVerify bool     `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
 	Network        string   `yaml:"network,omitempty" json:"network,omitempty"`
-	GrpcOpts       GrpcOptions `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
-	WSOpts         WSOptions   `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	CFingerPrint   string   `yaml:"client-fingerprint,omitempty" json:"client-fingerprint,omitempty"`
+	Flow           string   `yaml:"flow,omitempty" json:"flow,omitempty"`
+	TcpOpts        *TCPOptions     `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+	H2Opts         *HTTP2Options   `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	GrpcOpts       *GrpcOptions    `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
+	WSOpts         *WSOptions      `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	QuicOpts       *QUICOptions    `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
+	RealityOpts    *RealityOptions `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
 }
 
 /**
@@ -74,8 +80,92 @@ func (t Trojan) Clone() Proxy {
 // https://p4gefau1t.github.io/trojan-go/developer/url/
 func (t Trojan) Link() (link string) {
 	query := url.Values{}
+	if t.Flow != "" {
+		query.Set("flow", t.Flow)
+	}
+	if t.RealityOpts != nil {
+		query.Set("security", "reality")
+		if t.RealityOpts.PublicKey != "" {
+			query.Set("pbk", t.RealityOpts.PublicKey)
+		}
+		if t.RealityOpts.ShortID != "" {
+			query.Set("sid", t.RealityOpts.ShortID)
+		}
+		if t.RealityOpts.SpiderX != "" {
+			query.Set("spx", t.RealityOpts.SpiderX)
+		}
+	} else {
+		query.Set("security", "tls")
+	}
 	if t.SNI != "" {
 		query.Set("sni", url.QueryEscape(t.SNI))
+	}
+	if len(t.ALPN) > 0 {
+		query.Set("alpn", strings.Join(t.ALPN, ","))
+	}
+	if t.CFingerPrint != "" {
+		query.Set("fp", t.CFingerPrint)
+	}
+
+	switch t.Network {
+	case "ws":
+		query.Set("type", t.Network)
+		if t.WSOpts != nil {
+			if t.WSOpts.Path != "" {
+				query.Set("path", url.QueryEscape(t.WSOpts.Path))
+			}
+			if len(t.WSOpts.Headers) > 0 {
+				query.Set("host", url.QueryEscape(t.WSOpts.Headers["Host"]))
+			}
+		}
+		break
+	case "grpc":
+		query.Set("type", t.Network)
+		if t.GrpcOpts != nil {
+			if t.GrpcOpts.GrpcServiceName != "" {
+				query.Set("type", url.QueryEscape(t.GrpcOpts.GrpcServiceName))
+			}
+			if t.GrpcOpts.Mode != "" {
+				query.Set("mode", t.GrpcOpts.Mode)
+			}
+		}
+		break
+	case "h2": /* http2 */
+		query.Set("type", "http")
+		if t.H2Opts != nil {
+			if len(t.H2Opts.Host) > 0 {
+				query.Set("host", url.QueryEscape(t.H2Opts.Host[0]))
+			}
+			if t.H2Opts.Path != "" {
+				query.Set("path", url.QueryEscape(t.H2Opts.Path))
+			}
+		}
+		break
+	case "quic":
+		query.Set("type", t.Network)
+		if t.QuicOpts != nil {
+			if t.QuicOpts.Type != "" {
+				query.Set("headerType", t.QuicOpts.Type)
+			}
+			if t.QuicOpts.Security != "" {
+				query.Set("quicSecurity", t.QuicOpts.Security)
+			}
+			if t.QuicOpts.Key != "" {
+				query.Set("key", t.QuicOpts.Key)
+			}
+		}
+		break
+	case "tcp":
+	default:
+		if t.TcpOpts != nil {
+			query.Set("type", "tcp")
+			if t.TcpOpts.Type != "" {
+				query.Set("headerType", t.TcpOpts.Type)
+			}
+			if t.TcpOpts.Host != "" {
+				query.Set("host", url.QueryEscape(t.TcpOpts.Host))
+			}
+		}
 	}
 
 	uri := url.URL{
@@ -123,18 +213,130 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	port, _ := strconv.Atoi(uri.Port())
 
 	moreInfos := uri.Query()
+
+	flow := moreInfos.Get("flow")
+
+	var realityopts *RealityOptions
+	security := moreInfos.Get("security")
+	if security == "reality" {
+		pbk := moreInfos.Get("pbk")
+		sid := moreInfos.Get("sid")
+		spx := moreInfos.Get("spx")
+		if !(pbk == "" && sid == "" && spx == "") {
+			realityopts = &RealityOptions{
+				PublicKey: pbk,
+				ShortID:   sid,
+				SpiderX:   spx,
+			}
+		}
+	}
+
 	sni := moreInfos.Get("sni")
-	sni, _ = url.QueryUnescape(sni)
-	transformType := moreInfos.Get("type")
-	transformType, _ = url.QueryUnescape(transformType)
-	// host := moreInfos.Get("host")
-	// host, _ = url.QueryUnescape(host)
-	// path := moreInfos.Get("path")
-	// path, _ = url.QueryUnescape(path)
+	if sni != "" {
+		sni, _ = url.QueryUnescape(sni)
+	}
 
 	alpn := make([]string, 0)
-	if transformType == "h2" {
-		alpn = append(alpn, "h2")
+	alpnStr := moreInfos.Get("alpn")
+	if alpnStr != "" {
+		for _, value := range strings.Split(alpnStr, ",") {
+			if value == "" {
+				continue
+			}
+			alpn = append(alpn, value)
+		}
+	}
+
+	fingerprint := moreInfos.Get("fp")
+
+	var tcpopts *TCPOptions
+	var wsopts *WSOptions
+	var h2opts *HTTP2Options
+	var grpcopts *GrpcOptions
+	var quicopts *QUICOptions
+	transformType := moreInfos.Get("type")
+	switch transformType {
+	case "tcp": /* default */
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		headertype := moreInfos.Get("headerType")
+		if !(host == "" && headertype == "") {
+			tcpopts = &TCPOptions{
+				Host:   host,
+				Type:   headertype,
+			}
+		}
+		if tcpopts == nil {
+			transformType = ""
+		}
+		break
+	case "ws":
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
+		}
+		if !(host == "" && path == "") {
+			wsopts = &WSOptions{
+				Path: path,
+			}
+			if host != "" {
+				wsopts.Headers = make(map[string]string, 0)
+				wsopts.Headers["Host"] = host
+			}
+		}
+		break
+	case "grpc":
+		srvname := moreInfos.Get("serviceName")
+		if srvname != "" {
+			srvname, _ = url.QueryUnescape(srvname)
+		}
+		mode := moreInfos.Get("mode")
+		if !(srvname == "" && mode == "") {
+			grpcopts = &GrpcOptions{
+				GrpcServiceName: srvname,
+				Mode:            mode,
+			}
+		}
+		break
+	case "http": /* h2 */
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
+		}
+		if !(host == "" && path == "") {
+			h2opts = &HTTP2Options{
+				Path: path,
+			}
+			if host != "" {
+				h2opts.Host = make([]string, 0)
+				h2opts.Host = append(h2opts.Host, host)
+			}
+		}
+		transformType = "h2"
+		break
+	case "quic":
+		headertype := moreInfos.Get("headerType")
+		security := moreInfos.Get("quicSecurity")
+		key := moreInfos.Get("key")
+		if !(headertype == "" && security == "" && key == "") {
+			quicopts = &QUICOptions{
+				Type:     headertype,
+				Security: security,
+				Key:      key,
+			}
+		}
+		break
+	default:
 	}
 
 	if port == 0 {
@@ -153,6 +355,16 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		ALPN:           alpn,
 		SNI:            sni,
 		SkipCertVerify: true,
+		Network:        transformType,
+		CFingerPrint:   fingerprint,
+		Flow:           flow,
+
+		TcpOpts:        tcpopts,
+		H2Opts:         h2opts,
+		GrpcOpts:       grpcopts,
+		WSOpts:         wsopts,
+		QuicOpts:       quicopts,
+		RealityOpts:    realityopts,
 	}, nil
 }
 

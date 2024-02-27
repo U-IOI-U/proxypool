@@ -34,6 +34,9 @@ func init() {
 	sortType["http"] = 5
 	sortType["vless"] = 6
 	sortType["snell"] = 7
+	sortType["tuic"] = 8
+	sortType["hysteria"] = 9
+	sortType["hysteria2"] = 10
 }
 
 // sort排序使用

@@ -51,6 +51,7 @@ func checkClashSupport(p proxy.Proxy) bool {
 			tool.CheckInList(ssrObfsList, ssr.Obfs) {
 			return true
 		}
+		break
 	case "vmess":
 		vmess := p.(*proxy.Vmess)
 		if !tool.CheckVmessUUID(vmess.UUID) {
@@ -62,18 +63,20 @@ func checkClashSupport(p proxy.Proxy) bool {
 		if tool.CheckInList(vmessCipherList, vmess.Cipher) {
 			return true
 		}
+		break
 	case "ss":
 		ss := p.(*proxy.Shadowsocks)
 		if tool.CheckInList(proxy.SSCipherList, ss.Cipher) {
 			return true
 		}
+		break
 	case "trojan":
 		return true
 	case "http":
 		return true
 	case "vless":
 		vless := p.(*proxy.Vless)
-		if !tool.CheckVmessUUID(vless.UUID) {
+		if !tool.CheckVlessUUID(vless.UUID) {
 			return false
 		}
 		if !tool.CheckPort(vless.Base.Port) {
@@ -81,6 +84,12 @@ func checkClashSupport(p proxy.Proxy) bool {
 		}
 		return true
 	case "snell":
+		return true
+	case "tuic":
+		return true
+	case "hysteria":
+		return true
+	case "hysteria2":
 		return true
 	default:
 		return false

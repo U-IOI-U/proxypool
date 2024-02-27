@@ -17,17 +17,21 @@ var (
 type Vless struct {
 	Base
 	UUID           string            `yaml:"uuid" json:"uuid"`
+	Encryption     string            `yaml:"encryption,omitempty" json:"encryption,omitempty"`
+	ALPN           []string          `yaml:"alpn,omitempty" json:"alpn,omitempty"`
+	SNI            string            `yaml:"servername,omitempty" json:"servername,omitempty"`
+	SkipCertVerify bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
 	Network        string            `yaml:"network,omitempty" json:"network,omitempty"`
-	WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
-	ServerName     string            `yaml:"servername,omitempty" json:"servername,omitempty"`
-	WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
-	WSOpts         WSOptions         `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
-	HTTPOpts       HTTPOptions       `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
-	HTTP2Opts      HTTP2Options      `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
-	GRPCOpts       GrpcOptions       `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
+	CFingerPrint   string            `yaml:"client-fingerprint,omitempty" json:"client-fingerprint,omitempty"`
 	Flow           string            `yaml:"flow,omitempty" json:"flow,omitempty"`
 	TLS            bool              `yaml:"tls,omitempty" json:"tls,omitempty"`
-	SkipCertVerify bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
+
+	TcpOpts        *TCPOptions       `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+	H2Opts         *HTTP2Options     `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
+	GrpcOpts       *GrpcOptions      `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
+	WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
+	QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
+	RealityOpts    *RealityOptions   `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
 }
 
 func (v Vless) Identifier() string {
@@ -60,44 +64,97 @@ func (v Vless) Clone() Proxy {
 
 func (v Vless) Link() (link string) {
 	query := url.Values{}
-	if v.ServerName != "" {
-		query.Set("sni", url.QueryEscape(v.ServerName))
-	}
-	if v.Network != "" {
-		query.Set("type", url.QueryEscape(v.Network))
+	if v.Encryption != "" {
+		query.Set("encryption", v.Encryption)
+	} else {
+		query.Set("encryption", "none")
 	}
 	if v.Flow != "" {
-		query.Set("flow", url.QueryEscape(v.Flow))
-		query.Set("security", url.QueryEscape("xtls"))
-	} else {
-		query.Set("security", url.QueryEscape("tls"))
+		query.Set("flow", v.Flow)
 	}
+	if v.RealityOpts != nil {
+		query.Set("security", "reality")
+		if v.RealityOpts.PublicKey != "" {
+			query.Set("pbk", v.RealityOpts.PublicKey)
+		}
+		if v.RealityOpts.ShortID != "" {
+			query.Set("sid", v.RealityOpts.ShortID)
+		}
+		if v.RealityOpts.SpiderX != "" {
+			query.Set("spx", v.RealityOpts.SpiderX)
+		}
+	} else {
+		query.Set("security", "tls")
+	}
+	if v.SNI != "" {
+		query.Set("sni", url.QueryEscape(v.SNI))
+	}
+	if len(v.ALPN) > 0 {
+		query.Set("alpn", strings.Join(v.ALPN, ","))
+	}
+	if v.CFingerPrint != "" {
+		query.Set("fp", v.CFingerPrint)
+	}
+
 	switch v.Network {
 	case "ws":
-		if v.WSOpts.Path != "" {
-			query.Set("path", url.QueryEscape(v.WSOpts.Path))
-		}
-		if _, ok := v.WSOpts.Headers["Host"]; ok {
-			query.Set("host", url.QueryEscape(v.WSOpts.Headers["Host"]))
-		}
-	case "http":
-		if len(v.HTTPOpts.Path) > 0 {
-			query.Set("path", url.QueryEscape(v.HTTPOpts.Path[0]))
-		}
-		if _, ok := v.HTTPOpts.Headers["Host"]; ok {
-			if len(v.HTTPOpts.Headers["Host"]) > 0 {
-				query.Set("host", url.QueryEscape(v.HTTPOpts.Headers["Host"][0]))
+		query.Set("type", v.Network)
+		if v.WSOpts != nil {
+			if v.WSOpts.Path != "" {
+				query.Set("path", url.QueryEscape(v.WSOpts.Path))
+			}
+			if len(v.WSOpts.Headers) > 0 {
+				query.Set("host", url.QueryEscape(v.WSOpts.Headers["Host"]))
 			}
 		}
-	case "h2":
-		if v.HTTP2Opts.Path != "" {
-			query.Set("path", url.QueryEscape(v.HTTP2Opts.Path))
-		}
-		if len(v.HTTP2Opts.Host) > 0 {
-			query.Set("host", url.QueryEscape(v.HTTP2Opts.Host[0]))
-		}
+		break
 	case "grpc":
+		query.Set("type", v.Network)
+		if v.GrpcOpts != nil {
+			if v.GrpcOpts.GrpcServiceName != "" {
+				query.Set("type", url.QueryEscape(v.GrpcOpts.GrpcServiceName))
+			}
+			if v.GrpcOpts.Mode != "" {
+				query.Set("mode", v.GrpcOpts.Mode)
+			}
+		}
+		break
+	case "h2":
+		query.Set("type", "http")
+		if v.H2Opts != nil {
+			if len(v.H2Opts.Host) > 0 {
+				query.Set("host", url.QueryEscape(v.H2Opts.Host[0]))
+			}
+			if v.H2Opts.Path != "" {
+				query.Set("path", url.QueryEscape(v.H2Opts.Path))
+			}
+		}
+		break
+	case "quic":
+		query.Set("type", v.Network)
+		if v.QuicOpts != nil {
+			if v.QuicOpts.Type != "" {
+				query.Set("headerType", v.QuicOpts.Type)
+			}
+			if v.QuicOpts.Security != "" {
+				query.Set("quicSecurity", v.QuicOpts.Security)
+			}
+			if v.QuicOpts.Key != "" {
+				query.Set("key", v.QuicOpts.Key)
+			}
+		}
+		break
+	case "tcp":
 	default:
+		if v.TcpOpts != nil {
+			query.Set("type", "tcp")
+			if v.TcpOpts.Type != "" {
+				query.Set("headerType", v.TcpOpts.Type)
+			}
+			if v.TcpOpts.Host != "" {
+				query.Set("host", url.QueryEscape(v.TcpOpts.Host))
+			}
+		}
 	}
 
 	uri := url.URL{
@@ -109,40 +166,6 @@ func (v Vless) Link() (link string) {
 	}
 
 	return uri.String()
-}
-
-func (v *Vless) ConvToNew() {
-	v.TLS = true
-
-	switch v.Network {
-	case "ws":
-		if v.WSPath != "" && v.WSOpts.Path == "" {
-			v.WSOpts.Path = v.WSPath
-			v.WSPath = ""
-		}
-	
-		if len(v.WSHeaders) != 0 && len(v.WSOpts.Headers) == 0 {
-			v.WSOpts.Headers = make(map[string]string, len(v.WSHeaders))
-			for key, value := range v.WSHeaders {
-				v.WSOpts.Headers[key] = value
-			}
-			v.WSHeaders = make(map[string]string)
-		}
-	case "http":
-		if v.HTTPOpts.Method == "" {
-			v.HTTPOpts.Method = "GET"
-		}
-
-		if len(v.HTTPOpts.Path) == 0 {
-			v.HTTPOpts.Path = []string{"/"}
-		}
-	case "h2":
-		if v.HTTP2Opts.Path == "" {
-			v.HTTP2Opts.Path = "/"
-		}
-	case "grpc":
-	default:
-	}
 }
 
 func ParseVlessLink(link string) (*Vless, error) {
@@ -162,80 +185,145 @@ func ParseVlessLink(link string) (*Vless, error) {
 	port, _ := strconv.Atoi(uri.Port())
 
 	moreInfos := uri.Query()
-	sni := moreInfos.Get("sni")
-	sni, _ = url.QueryUnescape(sni)
-	transformType := moreInfos.Get("type")
-	transformType, _ = url.QueryUnescape(transformType)
-	// security := moreInfos.Get("security")
-	// security, _ = url.QueryUnescape(security)
-	host := moreInfos.Get("host")
-	host, _ = url.QueryUnescape(host)
-	path := moreInfos.Get("path")
-	path, _ = url.QueryUnescape(path)
-	// encryption := moreInfos.Get("encryption")
-	// encryption, _ = url.QueryUnescape(encryption)
-	// headerType := moreInfos.Get("headerType")
-	// headerType, _ = url.QueryUnescape(headerType)
+
+	encryption := moreInfos.Get("encryption")
+	if encryption == "none" {
+		encryption = ""
+	}
+
 	flow := moreInfos.Get("flow")
-	flow, _ = url.QueryUnescape(flow)
+	if flow == "xtls-rprx-direct" {
+		flow = ""
+	}
 
-	srvName := moreInfos.Get("serviceName")
-	srvName, _ = url.QueryUnescape(srvName)
+	var realityopts *RealityOptions
+	security := moreInfos.Get("security")
+	if security == "reality" {
+		pbk := moreInfos.Get("pbk")
+		sid := moreInfos.Get("sid")
+		spx := moreInfos.Get("spx")
+		if !(pbk == "" && sid == "" && spx == "") {
+			realityopts = &RealityOptions{
+				PublicKey: pbk,
+				ShortID:   sid,
+				SpiderX:   spx,
+			}
+		}
+	}
 
+	sni := moreInfos.Get("sni")
+	if sni != "" {
+		sni, _ = url.QueryUnescape(sni)
+	}
+
+	alpn := make([]string, 0)
+	alpnStr := moreInfos.Get("alpn")
+	if alpnStr != "" {
+		for _, value := range strings.Split(alpnStr, ",") {
+			if value == "" {
+				continue
+			}
+			alpn = append(alpn, value)
+		}
+	}
+
+	fingerprint := moreInfos.Get("fp")
+	if fingerprint == "随机" {
+		fingerprint = "random"
+	}
+
+	var tcpopts *TCPOptions
+	var wsopts *WSOptions
+	var h2opts *HTTP2Options
+	var grpcopts *GrpcOptions
+	var quicopts *QUICOptions
+	transformType := moreInfos.Get("type")
+	switch transformType {
+	case "tcp": /* default */
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		headertype := moreInfos.Get("headerType")
+		if !(host == "" && (headertype == "" || headertype == "none")) {
+			tcpopts = &TCPOptions{
+				Host:   host,
+				Type:   headertype,
+			}
+		}
+		if tcpopts == nil {
+			transformType = ""
+		}
+		break
+	case "ws":
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
+		}
+		if !(host == "" && path == "") {
+			wsopts = &WSOptions{
+				Path: path,
+			}
+			if host != "" {
+				wsopts.Headers = make(map[string]string, 0)
+				wsopts.Headers["Host"] = host
+			}
+		}
+		break
+	case "grpc":
+		srvname := moreInfos.Get("serviceName")
+		if srvname != "" {
+			srvname, _ = url.QueryUnescape(srvname)
+		}
+		mode := moreInfos.Get("mode")
+		if !(srvname == "" && mode == "") {
+			grpcopts = &GrpcOptions{
+				GrpcServiceName: srvname,
+				Mode:            mode,
+			}
+		}
+		break
+	case "http": /* h2 */
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
+		}
+		if !(host == "" && path == "") {
+			h2opts = &HTTP2Options{
+				Path: path,
+			}
+			if host != "" {
+				h2opts.Host = make([]string, 0)
+				h2opts.Host = append(h2opts.Host, host)
+			}
+		}
+		transformType = "h2"
+		break
+	case "quic":
+		headertype := moreInfos.Get("headerType")
+		security := moreInfos.Get("quicSecurity")
+		key := moreInfos.Get("key")
+		if !(headertype == "" && security == "" && key == "") {
+			quicopts = &QUICOptions{
+				Type:     headertype,
+				Security: security,
+				Key:      key,
+			}
+		}
+		break
+	default:
+	}
 	// Port
 	if port == 0 {
 		return nil, ErrorNotVlessLink
-	}
-	// TLS
-	// tls := true
-	// if security == "tls" || security == "xtls" {
-	// 	tls = true
-	// } else {
-	// 	tls = false
-	// }
-
-	wsOpt := WSOptions{}
-	httpOpt := HTTPOptions{}
-	h2Opt := HTTP2Options{}
-	grpcOpt := GrpcOptions{}
-
-	switch transformType {
-	case "ws":
-		if path == "" {
-			wsOpt.Path = "/"
-		} else {
-			wsOpt.Path = path
-		}
-		if host != "" {
-			wsOpt.Headers = make(map[string]string, 1)
-			wsOpt.Headers["Host"] = host
-		}
-	case "http":
-		httpOpt.Method = "GET"
-		if path == "" {
-			httpOpt.Path = []string{"/"}
-		} else {
-			httpOpt.Path = []string{path}
-		}
-		if host != "" {
-			httpOpt.Headers = make(map[string][]string, 1)
-			httpOpt.Headers["Host"] = []string{host}
-		}
-	case "h2":
-		if path == "" {
-			h2Opt.Path = "/"
-		} else {
-			h2Opt.Path = path
-		}
-		if host != "" {
-			h2Opt.Host = []string{host}
-		}
-	case "grpc":
-		if srvName != "" {
-			grpcOpt.GrpcServiceName = srvName
-		}
-	default: /* tcp */
-
 	}
 
 	return &Vless{
@@ -247,15 +335,21 @@ func ParseVlessLink(link string) (*Vless, error) {
 			UDP:    true,
 		},
 		UUID:           uuid,
+		Encryption:     encryption,
+		ALPN:           alpn,
 		Network:        transformType,
-		ServerName:     sni,
-		WSOpts:         wsOpt,
-		HTTPOpts:       httpOpt,
-		HTTP2Opts:      h2Opt,
-		GRPCOpts:       grpcOpt,
+		SNI:            sni,
+		CFingerPrint:   fingerprint,
 		Flow:           flow,
 		TLS:            true,
 		SkipCertVerify: true,
+
+		TcpOpts:        tcpopts,
+		H2Opts:         h2opts,
+		GrpcOpts:       grpcopts,
+		WSOpts:         wsopts,
+		QuicOpts:       quicopts,
+		RealityOpts:    realityopts,
 	}, nil
 }
 

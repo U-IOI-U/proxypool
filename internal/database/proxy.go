@@ -77,14 +77,18 @@ func GetAllProxies() (proxies proxy.ProxyList) {
 
 	proxiesDB := make([]Proxy, 0)
 	DB.Select("link").Find(&proxiesDB)
+	if proxiesDB == nil {
+		return nil
+	}
 
 	for _, proxyDB := range proxiesDB {
-		if proxiesDB != nil {
-			p, err := proxy.ParseProxyFromLink(proxyDB.Link)
-			if err == nil && p != nil {
-				p.SetUseable(false)
-				proxies = append(proxies, p)
-			}
+		if proxyDB.Link == "" {
+			continue
+		}
+		p, err := proxy.ParseProxyFromLink(proxyDB.Link)
+		if err == nil && p != nil {
+			p.SetUseable(false)
+			proxies = append(proxies, p)
 		}
 	}
 	return

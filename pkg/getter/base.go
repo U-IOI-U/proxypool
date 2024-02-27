@@ -64,6 +64,9 @@ func GrepLinksFromString(text string) []string {
 	results = append(results, proxy.GrepTrojanLinkFromString(text)...)
 	results = append(results, proxy.GrepHttpLinkFromString(text)...)
 	results = append(results, proxy.GrepVlessLinkFromString(text)...)
+	results = append(results, proxy.GrepTuicLinkFromString(text)...)
+	results = append(results, proxy.GrepHysteriaLinkFromString(text)...)
+	results = append(results, proxy.GrepHysteria2LinkFromString(text)...)
 	return results
 }
 

@@ -30,7 +30,8 @@ func connect() (err error) {
 		log.Infoln("database: successfully connected to: %s", DB.Name())
 	} else {
 		DB = nil
-		log.Warnln("database connection info: %s \n\t\tUse cache to store proxies", err.Error())
+		log.Warnln("database connection info: %s", err.Error())
+		log.Warnln("Use cache to store proxies")
 	}
 	return
 }

@@ -12,12 +12,7 @@ import (
 	"net/netip"
 	"time"
 	"strconv"
-	clash_vless "github.com/metacubex/mihomo/adapter"
 )
-
-func ParseVless(pmap map[string]any) (C.Proxy, error) {
-	return clash_vless.ParseProxy(pmap)
-}
 
 // DO NOT EDIT. Copied from clash because it's an unexported function
 func _urlToMetadata(rawURL string) (addr C.Metadata, err error) {

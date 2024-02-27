@@ -14,6 +14,8 @@ import (
 	"github.com/u-ioi-u/proxypool/pkg/provider"
 	"github.com/u-ioi-u/proxypool/pkg/proxy"
 	"github.com/u-ioi-u/proxypool/pkg/tool"
+
+	"github.com/ivpusic/grpool"
 )
 
 var location, _ = time.LoadLocation("Asia/Shanghai")
@@ -42,13 +44,31 @@ func CrawlGoWithSync() {
 	isCrawlGoRunning = false
 }
 
+func runGetters(pGetters PGetterList, pc chan proxy.Proxy, wg *sync.WaitGroup) {
+	pool := grpool.NewPool(100, 20)
+	pool.WaitCount(len(*pGetters))
+
+	for _, g := range *pGetters {
+		gg := g
+		pool.JobQueue <- func() {
+			defer pool.JobDone()
+			gg.Get2ChanWG(pc, wg)
+		}
+	}
+
+	pool.WaitAll()
+	pool.Release()
+}
+
 func CrawlGo(pGetters PGetterList) {
 	wg := &sync.WaitGroup{}
 	var pc = make(chan proxy.Proxy)
-	for _, g := range *pGetters {
-		wg.Add(1)
-		go g.Get2ChanWG(pc, wg)
-	}
+	wg.Add(len(*pGetters))
+	go runGetters(pGetters, pc, wg)
+	// 	for _, g := range *pGetters {
+	// 		wg.Add(1)
+	// 		go g.Get2ChanWG(pc, wg)
+	// 	}
 	proxies := cache.GetProxies("allproxies")
 	if proxies == nil {
 		// Show last time result when launch
@@ -73,7 +93,9 @@ func CrawlGo(pGetters PGetterList) {
 	// for 用于阻塞goroutine
 	for p := range pc { // Note: pc关闭后不能发送数据可以读取剩余数据
 		if p != nil {
-			proxies = append(proxies, p)
+			if proxy.CheckProxyValid(p) {
+				proxies = append(proxies, proxy.FixProxyValue(p))
+			}
 		}
 	}
 	proxies = proxies.Deduplication()
@@ -105,6 +127,9 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("TrojanProxiesCount: %d", cache.TrojanProxiesCount)
 	log.Infoln("HttpProxiesCount: %d", proxies.TypeLen("http"))
 	log.Infoln("SnellProxiesCount: %d", proxies.TypeLen("snell"))
+	log.Infoln("TuicProxiesCount: %d", proxies.TypeLen("tuic"))
+	log.Infoln("HysteriaProxiesCount: %d", proxies.TypeLen("hysteria"))
+	log.Infoln("Hysteria2ProxiesCount: %d", proxies.TypeLen("hysteria2"))
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
 	// Health Check

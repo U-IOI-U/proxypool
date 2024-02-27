@@ -20,6 +20,7 @@ import (
 	"github.com/ivpusic/grpool"
 
 	"github.com/Dreamacro/clash/adapter"
+	mihomo "github.com/metacubex/mihomo/adapter"
 )
 
 func CleanBadProxiesWithGrpool(proxies []proxy.Proxy) (cproxies []proxy.Proxy) {
@@ -80,17 +81,28 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 	pmap := make(map[string]interface{})
 	err = json.Unmarshal([]byte(p.String()), &pmap)
 	if err != nil {
-		return
+		return 0, err
 	}
 	pmap["port"] = int(pmap["port"].(float64))
 	if p.TypeName() == "vmess" {
 		pmap["alterId"] = int(pmap["alterId"].(float64))
 	}
 
-	if p.TypeName() == "vless" { // Vless有效性
-		clashProxy, err := ParseVless(pmap)
+	if proxy.GoodNodeThatClashUnsupported(p) {
+		host := pmap["server"].(string)
+		port := fmt.Sprint(pmap["port"].(int))
+		if _, interval, err := netConnectivity(host, port); err == nil {
+			return interval, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	if p.TypeName() == "vless" || p.TypeName() == "tuic" || p.TypeName() == "hysteria" || p.TypeName() == "hysteria2" { // Vless有效性
+		clashProxy, err := mihomo.ParseProxy(pmap)
 		if err != nil {
 			fmt.Println(err.Error())
+			fmt.Println(p)
 			return 0, err
 		}
 
@@ -117,19 +129,10 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 		}
 	}
 
-	if proxy.GoodNodeThatClashUnsupported(p) {
-		host := pmap["server"].(string)
-		port := fmt.Sprint(pmap["port"].(int))
-		if _, interval, err := netConnectivity(host, port); err == nil {
-			return interval, nil
-		} else {
-			return 0, err
-		}
-	}
-
 	clashProxy, err := adapter.ParseProxy(pmap)
 	if err != nil {
 		fmt.Println(err.Error())
+		fmt.Println(p)
 		return 0, err
 	}
 

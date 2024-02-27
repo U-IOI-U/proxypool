@@ -146,7 +146,7 @@ func SubScribeHistoryShow (mode string) string {
 		if lenHis > 0 {
 			if strings.Compare(mode, "debug") == 0 {
 				defer SubScribeHistoryClean()
-				log.Debugln("STATISTIC: Subscribe\tcount=%-5d\n", lenHis)
+				log.Debugln("STATISTIC: Subscribe\tcount=%-5d", lenHis)
 			} else if strings.Compare(mode, "showall") == 0 {
 				retString := make([]string, lenHis)
 				subScribeHistoryLock.Lock()
