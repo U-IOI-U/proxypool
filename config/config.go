@@ -47,6 +47,7 @@ type ConfigOptions struct {
 	ActiveFrequency       uint16   `json:"active-frequency" yaml:"active-frequency" `
 	ActiveInterval        uint64   `json:"active-interval" yaml:"active-interval"`
 	ActiveMaxNumber       uint16   `json:"active-max-number" yaml:"active-max-number"`
+	SaveClashProxy        string   `json:"save-clash-proxy,omitempty" yaml:"save-clash-proxy,omitempty"`
 }
 
 // Config 配置

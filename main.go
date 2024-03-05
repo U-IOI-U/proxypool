@@ -51,15 +51,21 @@ func main() {
 	exe, _ := os.Executable()
 	log.Infoln("Running image path: %s", exe)
 
-	database.InitTables()
-	// init GeoIp db reader and map between emoji's and countries
-	// return: struct geoIp (dbreader, emojimap)
-	err = geoIp.InitGeoIpDB()
-	if err != nil {
-		os.Exit(1)
+	if config.Config.SaveClashProxy == "" {
+		database.InitTables()
+		// init GeoIp db reader and map between emoji's and countries
+		// return: struct geoIp (dbreader, emojimap)
+		err = geoIp.InitGeoIpDB()
+		if err != nil {
+			log.Errorln("GeoIp db init error: %s", err.Error())
+			os.Exit(1)
+		}
+		log.Infoln("Do the first crawl...")
+		go app.CrawlGoWithSync() // 抓取主程序
+		go cron.Cron()   // 定时运行
+		api.Run()        // Web Serve
+	} else {
+		log.Infoln("Do the onetime crawl...")
+		app.CrawlGoWithSync() // 抓取主程序
 	}
-	log.Infoln("Do the first crawl...")
-	go app.CrawlGoWithSync() // 抓取主程序
-	go cron.Cron()   // 定时运行
-	api.Run()        // Web Serve
 }

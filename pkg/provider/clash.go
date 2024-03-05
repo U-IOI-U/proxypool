@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"os"
 	"strings"
 
 	"github.com/u-ioi-u/proxypool/pkg/tool"
@@ -39,6 +40,16 @@ func (c Clash) Provide() string {
 		resultBuilder.WriteString("- {\"name\":\"NULL\",\"server\":\"NULL\",\"port\":11708,\"type\":\"ssr\",\"country\":\"NULL\",\"password\":\"sEscPBiAD9K$\\u0026@79\",\"cipher\":\"aes-256-cfb\",\"protocol\":\"origin\",\"protocol_param\":\"NULL\",\"obfs\":\"http_simple\"}")
 	}
 	return resultBuilder.String()
+}
+
+func (c Clash) SaveProxies(path string) {
+	proxystr := c.Provide()
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return
+	}
+	f.WriteString(proxystr)
+	f.Close()
 }
 
 // 检查单个节点的加密方式、协议类型与混淆是否是Clash所支持的

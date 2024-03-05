@@ -132,6 +132,15 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("Hysteria2ProxiesCount: %d", proxies.TypeLen("hysteria2"))
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
+	if C.Config.SaveClashProxy != "" {
+		provider.Clash{
+			Base: provider.Base{
+				Proxies: &proxies,
+			},
+		}.SaveProxies(C.Config.SaveClashProxy)
+		return
+	}
+
 	// Health Check
 	log.Infoln("Now proceed proxy health check...")
 	healthcheck.SpeedConn = C.Config.SpeedConnection
