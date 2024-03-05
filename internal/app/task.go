@@ -132,6 +132,15 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("Hysteria2ProxiesCount: %d", proxies.TypeLen("hysteria2"))
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
+	// save all proxy
+	if C.Config.SaveClashProxy != "" {
+		provider.Clash{
+			Base: provider.Base{
+				Proxies: &proxies,
+			},
+		}.SaveProxies(C.Config.SaveClashProxy + "_all")
+	}
+
 	// Health Check
 	log.Infoln("Now proceed proxy health check...")
 	healthcheck.SpeedConn = C.Config.SpeedConnection
@@ -174,13 +183,24 @@ func CrawlGo(pGetters PGetterList) {
 	// 可用节点存储
 	cache.SetProxies("proxies", proxies)
 	cache.UsefullProxiesCount = proxies.Len()
+
+	log.Infoln("Usablility checking done. Open %s to check", C.Config.HostUrl())
+
+	// save proxy
+	if C.Config.SaveClashProxy != "" {
+		provider.Clash{
+			Base: provider.Base{
+				Proxies: &proxies,
+			},
+		}.SaveProxies(C.Config.SaveClashProxy)
+		return
+	}
+
 	// 后台处理数据库操作
 	go func () {
 		database.SaveProxyList(proxies)
 		database.ClearOldItems()
 	}()
-
-	log.Infoln("Usablility checking done. Open %s to check", C.Config.HostUrl())
 
 	// 测速
 	speedTestNew(proxies)

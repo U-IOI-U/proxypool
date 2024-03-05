@@ -40,12 +40,30 @@ jobs:
           go get -u github.com/go-bindata/go-bindata/...
           go-bindata -o internal/bindata/geoip/geoip.go -pkg bingeoip  assets/GeoLite2-City.mmdb assets/flags.json
 
-      - name: Build
-        # if: startsWith(github.ref, 'refs/tags/')
+      - name: Build Debug
+        if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
         env:
           NAME: proxypool
           BINDIR: bin
-        run: make -j linux-armv8
+        run: make -j linux-amd64 linux-armv8
+
+      - name: Build Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          NAME: proxypool
+          BINDIR: bin
+        run: make -j releases
+
+      - name: Upload Debug
+        uses: softprops/action-gh-release@v1
+        if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "debug"
+          files: bin/*
+          # draft: true
+          prerelease: true
 
       - name: Upload Release
         uses: softprops/action-gh-release@v1
@@ -58,7 +76,6 @@ jobs:
           prerelease: true
 
       - uses: actions/upload-artifact@v2
-        # if: startsWith(github.ref, 'refs/tags/')
         with:
           name: build
           path: bin

@@ -56,10 +56,17 @@ func main() {
 	// return: struct geoIp (dbreader, emojimap)
 	err = geoIp.InitGeoIpDB()
 	if err != nil {
+		log.Errorln("GeoIp db init error: %s", err.Error())
 		os.Exit(1)
 	}
-	log.Infoln("Do the first crawl...")
-	go app.CrawlGoWithSync() // 抓取主程序
-	go cron.Cron()   // 定时运行
-	api.Run()        // Web Serve
+
+	if config.Config.SaveClashProxy == "" {
+		log.Infoln("Do the first crawl...")
+		go app.CrawlGoWithSync() // 抓取主程序
+		go cron.Cron()   // 定时运行
+		api.Run()        // Web Serve
+	} else {
+		log.Infoln("Do the onetime crawl...")
+		app.CrawlGoWithSync() // 抓取主程序
+	}
 }
