@@ -113,7 +113,7 @@ const (
 	ipPattern = "(" + ip4Pattern + ")|(" + ip6Pattern + ")"
 
 	// 匹配域名
-	domainPattern = `[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9][a-zA-Z0-9_-]{0,62})*(\.[a-zA-Z][a-zA-Z0-9]{0,10}){1}`
+	domainPattern = `[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9][a-zA-Z0-9_-]{0,62})*(\.[a-zA-Z][a-zA-Z0-9-]{0,10}){1}`
 
 	// 匹配 URL
 	urlPattern = `((https|http)?://)?` + // 协议
