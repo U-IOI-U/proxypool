@@ -312,7 +312,7 @@ func FixProxyValue(b Proxy) Proxy {
 		break
 	case "vless":
 		vless := b.(*Vless)
-		if vless.Flow == "xtls-rprx-direct" {
+		if vless.Flow == "xtls-rprx-direct" || vless.Flow == "xtls-rprx-direct-udp443" {
 			vless.Flow = ""
 		}
 		vless.TLS = true
