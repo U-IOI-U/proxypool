@@ -98,6 +98,14 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 		}
 	}
 
+	respC := make(chan struct {
+		time.Duration
+		error
+	})
+	defer close(respC)
+	m := sync.Mutex{}
+	closed := false
+
 	if p.TypeName() == "vless" || p.TypeName() == "tuic" || p.TypeName() == "hysteria" || p.TypeName() == "hysteria2" { // Vless有效性
 		clashProxy, err := mihomo.ParseProxy(pmap)
 		if err != nil {
@@ -106,57 +114,65 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 			return 0, err
 		}
 
-		respC := make(chan struct {
-			time.Duration
-			error
-		})
-		defer close(respC)
 		go func() {
 			sTime := time.Now()
 			err = HTTPHeadViaVless(clashProxy, "http://www.gstatic.com/generate_204")
+			m.Lock()
+			if closed {
+				m.Unlock()
+				return
+			}
+			closed = true
+			m.Unlock()
+
 			respC <- struct {
 				time.Duration
 				error
 			}{time.Since(sTime), err}
 		}()
+	} else {
+		clashProxy, err := adapter.ParseProxy(pmap)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println(p)
+			return 0, err
+		}
 
-		pair, ok := <-respC
+		go func() {
+			sTime := time.Now()
+			err = HTTPHeadViaProxy(clashProxy, "http://www.gstatic.com/generate_204")
+			m.Lock()
+			if closed {
+				m.Unlock()
+				return
+			}
+			closed = true
+			m.Unlock()
 
+			respC <- struct {
+				time.Duration
+				error
+			}{time.Since(sTime), err}
+		}()
+	}
+
+	select {
+	case pair, ok := <-respC:
 		if ok {
 			return pair.Duration, pair.error
-		} else {
-			return 0, context.DeadlineExceeded
 		}
+	case <-time.After(DelayTimeout * 2):
+		m.Lock()
+		if closed {
+			// pair, ok := <-respC
+		} else {
+			closed = true
+		}
+		m.Unlock()
+
+		fmt.Printf("unexpected delay check timeout error in proxy %s\n", p.Link())
 	}
-
-	clashProxy, err := adapter.ParseProxy(pmap)
-	if err != nil {
-		fmt.Println(err.Error())
-		fmt.Println(p)
-		return 0, err
-	}
-
-	respC := make(chan struct {
-		time.Duration
-		error
-	})
-	defer close(respC)
-	go func() {
-		sTime := time.Now()
-		err = HTTPHeadViaProxy(clashProxy, "http://www.gstatic.com/generate_204")
-		respC <- struct {
-			time.Duration
-			error
-		}{time.Since(sTime), err}
-	}()
-
-	pair, ok := <-respC
-
-	if ok {
-		return pair.Duration, pair.error
-	} else {
-		return 0, context.DeadlineExceeded
-	}
+	return 0, context.DeadlineExceeded
 }
 
 func netConnectivity(host string, port string) (string, time.Duration, error) {
