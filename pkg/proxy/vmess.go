@@ -457,16 +457,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 
 		tls := vmessJson.Tls == "tls"
 
-		alpn := make([]string, 0)
-		alpnStr := vmessJson.ALPN
-		if alpnStr != "" {
-			for _, value := range strings.Split(alpnStr, ",") {
-				if value == "" {
-					continue
-				}
-				alpn = append(alpn, value)
-			}
-		}
+		alpn := ParseProxyALPN(vmessJson.ALPN)
 
 		var tcpopts *TCPOptions
 		var wsopts *WSOptions

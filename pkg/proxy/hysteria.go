@@ -122,16 +122,7 @@ func ParseHysteriaLink(link string) (*Hysteria, error) {
 		sni, _ = url.QueryUnescape(sni)
 	}
 
-	alpn := make([]string, 0)
-	alpnStr := moreInfos.Get("alpn")
-	if alpnStr != "" {
-		for _, value := range strings.Split(alpnStr, ",") {
-			if value == "" {
-				continue
-			}
-			alpn = append(alpn, value)
-		}
-	}
+	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
 	skip_certverify := true
 	if moreInfos.Get("insecure") == "0" {

@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/u-ioi-u/proxypool/log"
 )
 
 var (
@@ -112,7 +114,7 @@ func (v Vless) Link() (link string) {
 		query.Set("type", v.Network)
 		if v.GrpcOpts != nil {
 			if v.GrpcOpts.GrpcServiceName != "" {
-				query.Set("type", url.QueryEscape(v.GrpcOpts.GrpcServiceName))
+				query.Set("serviceName", url.QueryEscape(v.GrpcOpts.GrpcServiceName))
 			}
 			if v.GrpcOpts.Mode != "" {
 				query.Set("mode", v.GrpcOpts.Mode)
@@ -191,10 +193,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		encryption = ""
 	}
 
-	flow := moreInfos.Get("flow")
-	if flow == "xtls-rprx-direct" {
-		flow = ""
-	}
+	flow, _ := ParseProxyFlow(moreInfos.Get("flow"))
 
 	var realityopts *RealityOptions
 	security := moreInfos.Get("security")
@@ -216,45 +215,20 @@ func ParseVlessLink(link string) (*Vless, error) {
 		sni, _ = url.QueryUnescape(sni)
 	}
 
-	alpn := make([]string, 0)
-	alpnStr := moreInfos.Get("alpn")
-	if alpnStr != "" {
-		for _, value := range strings.Split(alpnStr, ",") {
-			if value == "" {
-				continue
-			}
-			alpn = append(alpn, value)
-		}
-	}
+	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
-	fingerprint := moreInfos.Get("fp")
-	if fingerprint == "随机" {
-		fingerprint = "random"
-	}
+	fingerprint := ParseProxyFingerPrint(moreInfos.Get("fp"))
 
 	var tcpopts *TCPOptions
 	var wsopts *WSOptions
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
-	transformType := moreInfos.Get("type")
+	transformType, chg := ParseProxyNetwork(moreInfos.Get("type"))
+	if chg < 0 {
+		log.Debugln("Proxy Network Error. [ %s ]", link)
+	}
 	switch transformType {
-	case "tcp": /* default */
-		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
-		headertype := moreInfos.Get("headerType")
-		if !(host == "" && (headertype == "" || headertype == "none")) {
-			tcpopts = &TCPOptions{
-				Host:   host,
-				Type:   headertype,
-			}
-		}
-		if tcpopts == nil {
-			transformType = ""
-		}
-		break
 	case "ws":
 		host := moreInfos.Get("host")
 		if host != "" {
@@ -319,7 +293,23 @@ func ParseVlessLink(link string) (*Vless, error) {
 			}
 		}
 		break
+	case "tcp": /* default */
 	default:
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		headertype := moreInfos.Get("headerType")
+		if !(host == "" && (headertype == "" || headertype == "none")) {
+			tcpopts = &TCPOptions{
+				Host:   host,
+				Type:   headertype,
+			}
+		}
+		if tcpopts == nil {
+			transformType = ""
+		}
+		break
 	}
 	// Port
 	if port == 0 {

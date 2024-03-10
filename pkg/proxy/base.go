@@ -307,13 +307,17 @@ func FixProxyValue(b Proxy) Proxy {
 		}
 		break
 	case "trojan":
+		trojan := b.(*Trojan)
+		if network, chg := ParseProxyNetwork(trojan.Network); chg != 0 {
+			trojan.Network = network
+		}
 		break
 	case "http":
 		break
 	case "vless":
 		vless := b.(*Vless)
-		if vless.Flow == "xtls-rprx-direct" || vless.Flow == "xtls-rprx-direct-udp443" {
-			vless.Flow = ""
+		if flow, ok := ParseProxyFlow(vless.Flow); ok {
+			vless.Flow = flow
 		}
 		vless.TLS = true
 		break
@@ -347,4 +351,45 @@ func GoodNodeThatClashUnsupported(b Proxy) bool {
 	// 	return true
 	}
 	return false
+}
+
+// 0: no change
+// 1: known network
+// -1: unknown network
+func ParseProxyNetwork(n string) (string, int) {
+	if n == "none" {
+		return "", 1
+	} else if n == "trojangrpc" || n == "trgrpc" || n == "mm_grpc" || n == "GRPC" {
+		return "grpc", 1
+	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic") {
+		return "tcp", -1
+	}
+	return n, 0
+}
+
+func ParseProxyALPN(s string) []string {
+	alpn := make([]string, 0)
+	if s != "" {
+		for _, value := range strings.Split(s, ",") {
+			if value == "" {
+				continue
+			}
+			alpn = append(alpn, value)
+		}
+	}
+	return alpn
+}
+
+func ParseProxyFlow(s string) (string, bool) {
+	if s == "xtls-rprx-direct" || s == "xtls-rprx-direct-udp443" {
+		return "", true
+	}
+	return s, false
+}
+
+func ParseProxyFingerPrint(fp string) string {
+	if fp == "随机" || fp == "rando" {
+		return "random"
+	}
+	return fp
 }

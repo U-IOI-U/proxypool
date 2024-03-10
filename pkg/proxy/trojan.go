@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/u-ioi-u/proxypool/log"
 )
 
 var (
@@ -123,7 +125,7 @@ func (t Trojan) Link() (link string) {
 		query.Set("type", t.Network)
 		if t.GrpcOpts != nil {
 			if t.GrpcOpts.GrpcServiceName != "" {
-				query.Set("type", url.QueryEscape(t.GrpcOpts.GrpcServiceName))
+				query.Set("serviceName", url.QueryEscape(t.GrpcOpts.GrpcServiceName))
 			}
 			if t.GrpcOpts.Mode != "" {
 				query.Set("mode", t.GrpcOpts.Mode)
@@ -236,16 +238,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		sni, _ = url.QueryUnescape(sni)
 	}
 
-	alpn := make([]string, 0)
-	alpnStr := moreInfos.Get("alpn")
-	if alpnStr != "" {
-		for _, value := range strings.Split(alpnStr, ",") {
-			if value == "" {
-				continue
-			}
-			alpn = append(alpn, value)
-		}
-	}
+	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
 	fingerprint := moreInfos.Get("fp")
 
@@ -254,24 +247,11 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
-	transformType := moreInfos.Get("type")
+	transformType, chg := ParseProxyNetwork(moreInfos.Get("type"))
+	if chg < 0 {
+		log.Debugln("Proxy Network Error. [ %s ]", link)
+	}
 	switch transformType {
-	case "tcp": /* default */
-		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
-		headertype := moreInfos.Get("headerType")
-		if !(host == "" && headertype == "") {
-			tcpopts = &TCPOptions{
-				Host:   host,
-				Type:   headertype,
-			}
-		}
-		if tcpopts == nil {
-			transformType = ""
-		}
-		break
 	case "ws":
 		host := moreInfos.Get("host")
 		if host != "" {
@@ -336,7 +316,23 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			}
 		}
 		break
+	case "tcp": /* default */
 	default:
+		host := moreInfos.Get("host")
+		if host != "" {
+			host, _ = url.QueryUnescape(host)
+		}
+		headertype := moreInfos.Get("headerType")
+		if !(host == "" && headertype == "") {
+			tcpopts = &TCPOptions{
+				Host:   host,
+				Type:   headertype,
+			}
+		}
+		if tcpopts == nil {
+			transformType = ""
+		}
+		break
 	}
 
 	if port == 0 {

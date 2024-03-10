@@ -108,16 +108,7 @@ func ParseTuicLink(link string) (*Tuic, error) {
 
 	moreInfos := uri.Query()
 
-	alpn := make([]string, 0)
-	alpnStr := moreInfos.Get("alpn")
-	if alpnStr != "" {
-		for _, value := range strings.Split(alpnStr, ",") {
-			if value == "" {
-				continue
-			}
-			alpn = append(alpn, value)
-		}
-	}
+	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
 	congestion_control := moreInfos.Get("congestion_control")
 	udp_relay_mode := moreInfos.Get("udp_relay_mode")
