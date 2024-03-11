@@ -349,6 +349,11 @@ func GoodNodeThatClashUnsupported(b Proxy) bool {
 	// 		return false
 	// 	}
 	// 	return true
+	case "hysteria":
+		hysteria := b.(*Hysteria)
+		if len(hysteria.Protocol) == 0 || hysteria.Protocol == "udp" {
+			return true
+		}
 	}
 	return false
 }
