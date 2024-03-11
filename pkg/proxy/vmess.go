@@ -38,6 +38,7 @@ type Vmess struct {
 	GrpcOpts       *GrpcOptions  `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	WSOpts         *WSOptions    `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 	QuicOpts       *QUICOptions  `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
+	KcpOpts        *KCPOptions   `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
 }
 
 func (v *Vmess) UnmarshalJSON(data []byte) error {
@@ -59,6 +60,7 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 		GrpcOpts       *GrpcOptions      `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 		WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 		QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
+		KcpOpts        *KCPOptions       `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
 
 		WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
 		WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
@@ -126,6 +128,13 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 		if tmp.HTTPOpts != nil {
 			if !(tmp.HTTPOpts.Method == "" && len(tmp.HTTPOpts.Path) == 0 && len(tmp.HTTPOpts.Headers) == 0) {
 				v.HTTPOpts = tmp.HTTPOpts
+			}
+		}
+		break
+	case "kcp":
+		if tmp.KcpOpts != nil {
+			if !(tmp.KcpOpts.Type == "" && tmp.KcpOpts.Seed == "") {
+				v.KcpOpts = tmp.KcpOpts
 			}
 		}
 		break
@@ -280,6 +289,12 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 					}
 				}
 			}
+		}
+		break
+	case "kcp":
+		if v.KcpOpts != nil {
+			vj.Type = v.KcpOpts.Type
+			vj.Path = v.KcpOpts.Seed
 		}
 		break
 	case "tcp":
@@ -465,6 +480,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		var h2opts *HTTP2Options
 		var grpcopts *GrpcOptions
 		var quicopts *QUICOptions
+		var kcpopts *KCPOptions
 		switch vmessJson.Net {
 		case "ws":
 			if !(vmessJson.Host == "" && vmessJson.Path == "") {
@@ -520,6 +536,14 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 			}
 			break
+		case "kcp":
+			if !(vmessJson.Type == "" && vmessJson.Path == "") {
+				kcpopts = &KCPOptions{
+					Type: vmessJson.Type,
+					Seed: vmessJson.Path,
+				}
+			}
+			break
 		case "tcp":
 		default:
 			vmessJson.Net = "tcp"
@@ -557,6 +581,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			GrpcOpts:       grpcopts,
 			WSOpts:         wsopts,
 			QuicOpts:       quicopts,
+			KcpOpts:        kcpopts,
 		}
 
 		return &v, nil

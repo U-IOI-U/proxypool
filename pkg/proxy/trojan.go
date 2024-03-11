@@ -35,6 +35,7 @@ type Trojan struct {
 	WSOpts         *WSOptions      `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 	QuicOpts       *QUICOptions    `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 	RealityOpts    *RealityOptions `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
+	KcpOpts        *KCPOptions     `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
 }
 
 /**
@@ -157,6 +158,17 @@ func (t Trojan) Link() (link string) {
 			}
 		}
 		break
+	case "kcp":
+		query.Set("type", t.Network)
+		if t.KcpOpts != nil {
+			if t.KcpOpts.Type != "" {
+				query.Set("headerType", t.KcpOpts.Type)
+			}
+			if t.KcpOpts.Seed != "" {
+				query.Set("seed", t.KcpOpts.Seed)
+			}
+		}
+		break
 	case "tcp":
 	default:
 		if t.TcpOpts != nil {
@@ -247,6 +259,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
+	var kcpopts *KCPOptions
 	transformType, chg := ParseProxyNetwork(moreInfos.Get("type"))
 	if chg < 0 {
 		log.Debugln("Proxy Network Error. [ %s ]", link)
@@ -316,6 +329,16 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			}
 		}
 		break
+	case "kcp":
+		headertype := moreInfos.Get("headerType")
+		seed := moreInfos.Get("seed")
+		if !(headertype == "" && seed == "") {
+			kcpopts = &KCPOptions{
+				Type: headertype,
+				Seed: seed,
+			}
+		}
+		break
 	case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
@@ -361,6 +384,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		WSOpts:         wsopts,
 		QuicOpts:       quicopts,
 		RealityOpts:    realityopts,
+		KcpOpts:        kcpopts,
 	}, nil
 }
 

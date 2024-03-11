@@ -62,6 +62,11 @@ type RealityOptions struct {
 	SpiderX     string   `yaml:"spiderx,omitempty" json:"spiderx,omitempty"`
 }
 
+type KCPOptions struct {
+	Type     string   `yaml:"type,omitempty" json:"type,omitempty"`
+	Seed     string   `yaml:"seed,omitempty" json:"seed,omitempty"`
+}
+
 // TypeName() Get specific proxy type
 func (b *Base) TypeName() string {
 	if b.Type == "" {
@@ -349,6 +354,24 @@ func GoodNodeThatClashUnsupported(b Proxy) bool {
 	// 		return false
 	// 	}
 	// 	return true
+	case "trojan":
+		trojan := b.(*Trojan)
+		if trojan.Network == "kcp" {
+			return true
+		}
+		break
+	case "vless":
+		vless := b.(*Vless)
+		if vless.Network == "kcp" {
+			return true
+		}
+		break
+	case "vmess":
+		vmess := b.(*Vmess)
+		if vmess.Network == "kcp" {
+			return true
+		}
+		break
 	case "hysteria":
 		hysteria := b.(*Hysteria)
 		if len(hysteria.Protocol) == 0 || hysteria.Protocol == "udp" {
@@ -366,7 +389,7 @@ func ParseProxyNetwork(n string) (string, int) {
 		return "", 1
 	} else if n == "trojangrpc" || n == "trgrpc" || n == "mm_grpc" || n == "GRPC" {
 		return "grpc", 1
-	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic") {
+	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp") {
 		return "tcp", -1
 	}
 	return n, 0

@@ -34,6 +34,7 @@ type Vless struct {
 	WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 	QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 	RealityOpts    *RealityOptions   `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
+	KcpOpts        *KCPOptions       `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
 }
 
 func (v Vless) Identifier() string {
@@ -146,6 +147,17 @@ func (v Vless) Link() (link string) {
 			}
 		}
 		break
+	case "kcp":
+		query.Set("type", v.Network)
+		if v.KcpOpts != nil {
+			if v.KcpOpts.Type != "" {
+				query.Set("headerType", v.KcpOpts.Type)
+			}
+			if v.KcpOpts.Seed != "" {
+				query.Set("seed", v.KcpOpts.Seed)
+			}
+		}
+		break
 	case "tcp":
 	default:
 		if v.TcpOpts != nil {
@@ -224,6 +236,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
+	var kcpopts *KCPOptions
 	transformType, chg := ParseProxyNetwork(moreInfos.Get("type"))
 	if chg < 0 {
 		log.Debugln("Proxy Network Error. [ %s ]", link)
@@ -293,6 +306,16 @@ func ParseVlessLink(link string) (*Vless, error) {
 			}
 		}
 		break
+	case "kcp":
+		headertype := moreInfos.Get("headerType")
+		seed := moreInfos.Get("seed")
+		if !(headertype == "" && seed == "") {
+			kcpopts = &KCPOptions{
+				Type: headertype,
+				Seed: seed,
+			}
+		}
+		break
 	case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
@@ -340,6 +363,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		WSOpts:         wsopts,
 		QuicOpts:       quicopts,
 		RealityOpts:    realityopts,
+		KcpOpts:        kcpopts,
 	}, nil
 }
 
