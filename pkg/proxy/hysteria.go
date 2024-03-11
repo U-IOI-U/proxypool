@@ -16,7 +16,7 @@ var (
 
 type Hysteria struct {
 	Base
-	Auth                 string            `yaml:"auth_str" json:"auth_str"`
+	Auth                 string            `yaml:"auth-str,omitempty" json:"auth-str,omitempty"`
 	MPorts               string            `yaml:"ports,omitempty" json:"ports,omitempty"`
 	Obfs                 string            `yaml:"obfs,omitempty" json:"obfs,omitempty"`
 	ALPN                 []string          `yaml:"alpn,omitempty" json:"alpn,omitempty"`
@@ -25,6 +25,44 @@ type Hysteria struct {
 	DownSpeed            string            `yaml:"down,omitempty" json:"down,omitempty"`
 	SNI                  string            `yaml:"sni,omitempty" json:"sni,omitempty"`
 	SkipCertVerify       bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
+}
+
+func (h *Hysteria) UnmarshalJSON(data []byte) error {
+	tmp := struct {
+		Base
+		Auth                 string            `yaml:"auth-str,omitempty" json:"auth-str,omitempty"`
+		MPorts               string            `yaml:"ports,omitempty" json:"ports,omitempty"`
+		Obfs                 string            `yaml:"obfs,omitempty" json:"obfs,omitempty"`
+		ALPN                 []string          `yaml:"alpn,omitempty" json:"alpn,omitempty"`
+		Protocol             string            `yaml:"protocol,omitempty" json:"protocol,omitempty"`
+		UpSpeed              string            `yaml:"up,omitempty" json:"up,omitempty"`
+		DownSpeed            string            `yaml:"down,omitempty" json:"down,omitempty"`
+		SNI                  string            `yaml:"sni,omitempty" json:"sni,omitempty"`
+		SkipCertVerify       bool              `yaml:"skip-cert-verify,omitempty" json:"skip-cert-verify,omitempty"`
+
+		AuthStr              string            `yaml:"auth_str,omitempty" json:"auth_str,omitempty"`
+	}{}
+
+	err := json.Unmarshal(data, &tmp)
+	if err != nil {
+		return err
+	}
+
+	h.Base = tmp.Base
+	h.Auth = tmp.Auth
+	if h.Auth == "" && tmp.AuthStr != "" {
+		h.Auth = tmp.AuthStr
+	}
+	h.MPorts = tmp.MPorts
+	h.Obfs = tmp.Obfs
+	h.ALPN = tmp.ALPN
+	h.Protocol = tmp.Protocol
+	h.UpSpeed = tmp.UpSpeed
+	h.DownSpeed = tmp.DownSpeed
+	h.SNI = tmp.SNI
+	h.SkipCertVerify = tmp.SkipCertVerify
+
+	return nil
 }
 
 func (h Hysteria) Identifier() string {
