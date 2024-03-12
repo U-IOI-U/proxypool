@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"strconv"
-
-	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 /* Base implements interface Proxy. It's the basic proxy struct. Vmess etc extends Base*/
@@ -260,29 +258,47 @@ func fixProxyFromClashProxy(p map[string]any) {
 }
 
 func CheckProxyValid(b Proxy) bool {
-	if !tool.CheckPort(b.BaseInfo().Port) {
+	if !CheckAddress(b.BaseInfo().Server) {
+		return false
+	}
+	if !CheckPort(b.BaseInfo().Port) {
 		return false
 	}
 	switch b.TypeName() {
 	case "ss":
 		ss := b.(*Shadowsocks)
-		if !tool.CheckInList(SSCipherList, ss.Cipher) {
+		if !CheckSSCipher(ss.Cipher) {
 			return false
 		}
 		break
 	case "ssr":
+		ssr := b.(*ShadowsocksR)
+		if !CheckSSRCipher(ssr.Cipher) || !CheckClashSSRProtocol(ssr.Protocol) || !CheckClashSSRObfs(ssr.Obfs) {
+			return false
+		}
 		break
 	case "vmess":
 		vmess := b.(*Vmess)
-		if !tool.CheckVmessUUID(vmess.UUID) {
+		if !CheckVmessUUID(vmess.UUID) {
+			return false
+		}
+		if !CheckVmessCipher(vmess.Cipher) {
 			return false
 		}
 		break
 	case "trojan":
 		break
 	case "http":
+		h := b.(*CHttp)
+		if len(h.UserName) == 0 || len(h.Password) == 0 {
+			return false
+		}
 		break
 	case "vless":
+		vless := b.(*Vless)
+		if !CheckVlessUUID(vless.UUID) {
+			return false
+		}
 		break
 	case "snell":
 		break
@@ -304,6 +320,9 @@ func FixProxyValue(b Proxy) Proxy {
 		break
 	case "vmess":
 		vmess := b.(*Vmess)
+		if cipher, chg := ParseVmessCipher(vmess.Cipher); chg != 0 {
+			vmess.Cipher = cipher
+		}
 		switch vmess.Network {
 		case "h2":
 		case "grpc":
@@ -324,6 +343,9 @@ func FixProxyValue(b Proxy) Proxy {
 		if flow, ok := ParseProxyFlow(vless.Flow); ok {
 			vless.Flow = flow
 		}
+		if vless.Network == "http" {
+
+		}
 		vless.TLS = true
 		break
 	case "snell":
@@ -338,47 +360,58 @@ func FixProxyValue(b Proxy) Proxy {
 	return b
 }
 
-func GoodNodeThatClashUnsupported(b Proxy) bool {
+func CheckProxyClashSupported(b Proxy) bool {
 	switch b.TypeName() {
 	case "ss":
 		ss := b.(*Shadowsocks)
-		if ss != nil {
-			if ss.Cipher == "none" || ss.Cipher == "2022-blake3-aes-128-gcm" || ss.Cipher == "2022-blake3-aes-256-gcm" || ss.Cipher == "2022-blake3-chacha20-poly1305" {
-				return true
-			}
+		if ss.Cipher == "none" || ss.Cipher == "2022-blake3-aes-128-gcm" || ss.Cipher == "2022-blake3-aes-256-gcm" || ss.Cipher == "2022-blake3-chacha20-poly1305" {
+			return false
 		}
 		break
-	// case "ssr":
-	// 	ssr := b.(*ShadowsocksR)
-	// 	if ssr == nil {
-	// 		return false
-	// 	}
-	// 	return true
+	case "ssr":
+		ssr := b.(*ShadowsocksR)
+		if ssr.Cipher == "rc4" || ssr.Cipher == "chacha20" {
+			return false
+		}
+		break
 	case "trojan":
 		trojan := b.(*Trojan)
 		if trojan.Network == "kcp" {
-			return true
+			return false
 		}
 		break
 	case "vless":
 		vless := b.(*Vless)
 		if vless.Network == "kcp" {
-			return true
+			return false
 		}
 		break
 	case "vmess":
 		vmess := b.(*Vmess)
 		if vmess.Network == "kcp" {
-			return true
+			return false
 		}
 		break
+	case "snell":
+	case "tuic":
+	case "hysteria":
+	case "hysteria2":
+	default:
+	}
+	return true
+}
+
+func GoodNodeThatClashUnsupported(b Proxy) bool {
+	switch b.TypeName() {
 	case "hysteria":
 		hysteria := b.(*Hysteria)
 		if len(hysteria.Protocol) == 0 || hysteria.Protocol == "udp" {
 			return true
 		}
+	default:
 	}
-	return false
+
+	return !CheckProxyClashSupported(b)
 }
 
 // 0: no change
@@ -420,4 +453,11 @@ func ParseProxyFingerPrint(fp string) string {
 		return "random"
 	}
 	return fp
+}
+
+func ParseVmessCipher(cipher string) (string, int) {
+	if cipher == "" {
+		return "auto", 1
+	}
+	return cipher, 0
 }

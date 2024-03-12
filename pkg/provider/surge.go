@@ -3,8 +3,6 @@ package provider
 import (
 	"strings"
 
-	"github.com/u-ioi-u/proxypool/pkg/tool"
-
 	"github.com/u-ioi-u/proxypool/pkg/proxy"
 )
 
@@ -20,23 +18,22 @@ func (s Surge) Provide() string {
 	var resultBuilder strings.Builder
 	for _, p := range *s.Proxies {
 		if checkSurgeSupport(p) {
-			resultBuilder.WriteString(p.ToSurge() + "\n")
+			if s := p.ToSurge(); len(s) > 0 {
+				resultBuilder.WriteString(s + "\n")
+			}
 		}
 	}
 	return resultBuilder.String()
 }
 
 func checkSurgeSupport(p proxy.Proxy) bool {
-	switch p := p.(type) {
-	case *proxy.ShadowsocksR:
+	switch p.TypeName() {
+	case "ssr":
 		return false
-	case *proxy.Vmess:
+	case "vmess":
 		return true
-	case *proxy.Shadowsocks:
-		ss := p
-		if tool.CheckInList(proxy.SSCipherList, ss.Cipher) {
-			return true
-		}
+	case "ss":
+		return true
 	default:
 		return false
 	}

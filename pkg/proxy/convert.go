@@ -2,8 +2,6 @@ package proxy
 
 import (
 	"errors"
-
-	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 var ErrorTypeCanNotConvert = errors.New("type not support")
@@ -15,7 +13,7 @@ func Convert2SSR(p Proxy) (ssr *ShadowsocksR, err error) {
 		if ss == nil {
 			return nil, errors.New("ss is nil")
 		}
-		if !tool.CheckInList(SSRCipherList, ss.Cipher) {
+		if !CheckSSRCipher(ss.Cipher) {
 			return nil, errors.New("cipher not support")
 		}
 		base := ss.Base
@@ -38,7 +36,7 @@ func Convert2SS(p Proxy) (ss *Shadowsocks, err error) {
 		if ssr == nil {
 			return nil, errors.New("ssr is nil")
 		}
-		if !tool.CheckInList(SSCipherList, ssr.Cipher) {
+		if !CheckSSCipher(ssr.Cipher) {
 			return nil, errors.New("cipher not support")
 		}
 		if ssr.Protocol != "origin" || ssr.Obfs != "plain" || ssr.Ot_enable != 0 {
@@ -59,6 +57,7 @@ func Convert2SS(p Proxy) (ss *Shadowsocks, err error) {
 
 var SSRCipherList = []string{
 	"none",
+	"dummy",
 	"aes-128-cfb",
 	"aes-192-cfb",
 	"aes-256-cfb",
@@ -71,7 +70,9 @@ var SSRCipherList = []string{
 	"des-cfb",
 	"bf-cfb",
 	"cast5-cfb",
+	"rc4",
 	"rc4-md5",
+	"chacha20",
 	"chacha20-ietf",
 	"xchacha20",
 	// "salsa20",

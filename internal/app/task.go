@@ -106,12 +106,12 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
 
 	// Clean Clash unsupported proxy because health check depends on clash
-	proxies = provider.Clash{
-		Base: provider.Base{
-			Proxies: &proxies,
-		},
-	}.CleanProxies()
-	log.Infoln("CrawlGo clash supported proxy count: %d", len(proxies))
+	// proxies = provider.Clash{
+	// 	Base: provider.Base{
+	// 		Proxies: &proxies,
+	// 	},
+	// }.CleanProxies()
+	// log.Infoln("CrawlGo clash supported proxy count: %d", len(proxies))
 
 	cache.SetProxies("allproxies", proxies)
 	cache.AllProxiesCount = proxies.Len()

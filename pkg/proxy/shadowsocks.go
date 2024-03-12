@@ -205,7 +205,7 @@ func ParseSSLink(link string) (*Shadowsocks, error) {
 	} else {
 		plugin = pluginString
 	}
-	if port == 0 || cipher == "" || !tool.CheckInList(SSCipherList, cipher) {
+	if port == 0 || cipher == "" || !CheckSSCipher(cipher) {
 		return nil, ErrorNotSSLink
 	}
 

@@ -3,8 +3,6 @@ package provider
 import (
 	"strings"
 
-	"github.com/u-ioi-u/proxypool/pkg/tool"
-
 	"github.com/u-ioi-u/proxypool/pkg/proxy"
 )
 
@@ -45,85 +43,5 @@ func (c Clash) Provide() string {
 
 // 检查单个节点的加密方式、协议类型与混淆是否是Clash所支持的
 func checkClashSupport(p proxy.Proxy) bool {
-	switch p.TypeName() {
-	case "ssr":
-		ssr := p.(*proxy.ShadowsocksR)
-		if tool.CheckInList(proxy.SSRCipherList, ssr.Cipher) &&
-			tool.CheckInList(ssrProtocolList, ssr.Protocol) &&
-			tool.CheckInList(ssrObfsList, ssr.Obfs) {
-			return true
-		}
-		break
-	case "vmess":
-		vmess := p.(*proxy.Vmess)
-		if !tool.CheckVmessUUID(vmess.UUID) {
-			return false
-		}
-		if !tool.CheckPort(vmess.Base.Port) {
-			return false
-		}
-		if tool.CheckInList(vmessCipherList, vmess.Cipher) {
-			return true
-		}
-		break
-	case "ss":
-		ss := p.(*proxy.Shadowsocks)
-		if tool.CheckInList(proxy.SSCipherList, ss.Cipher) {
-			return true
-		}
-		break
-	case "trojan":
-		return true
-	case "http":
-		return true
-	case "vless":
-		vless := p.(*proxy.Vless)
-		if !tool.CheckVlessUUID(vless.UUID) {
-			return false
-		}
-		if !tool.CheckPort(vless.Base.Port) {
-			return false
-		}
-		return true
-	case "snell":
-		return true
-	case "tuic":
-		return true
-	case "hysteria":
-		return true
-	case "hysteria2":
-		return true
-	default:
-		return false
-	}
-	return false
-}
-
-var ssrObfsList = []string{
-	"plain",
-	"http_simple",
-	"http_post",
-	"random_head",
-	"tls1.2_ticket_auth",
-	"tls1.2_ticket_fastauth",
-}
-
-var ssrProtocolList = []string{
-	"origin",
-	"verify_deflate",
-	"verify_sha1",
-	"auth_sha1",
-	"auth_sha1_v2",
-	"auth_sha1_v4",
-	"auth_aes128_md5",
-	"auth_aes128_sha1",
-	"auth_chain_a",
-	"auth_chain_b",
-}
-
-var vmessCipherList = []string{
-	"auto",
-	"aes-128-gcm",
-	"chacha20-poly1305",
-	"none",
+	return proxy.CheckProxyClashSupported(p)
 }
