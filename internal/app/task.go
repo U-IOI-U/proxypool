@@ -133,12 +133,12 @@ func CrawlGo(pGetters PGetterList) {
 	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
 	// save all proxy
-	if C.Config.SaveClashProxy != "" {
-		provider.Clash{
+	if C.Config.SaveProxyFile != "" {
+		provider.Pfile{
 			Base: provider.Base{
 				Proxies: &proxies,
 			},
-		}.SaveProxies(C.Config.SaveClashProxy + "_all")
+		}.SaveProxies(C.Config.SaveProxyFile + "_all")
 	}
 
 	// Health Check
@@ -187,12 +187,12 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("Usablility checking done. Open %s to check", C.Config.HostUrl())
 
 	// save proxy
-	if C.Config.SaveClashProxy != "" {
-		provider.Clash{
+	if C.Config.SaveProxyFile != "" {
+		provider.Pfile{
 			Base: provider.Base{
 				Proxies: &proxies,
 			},
-		}.SaveProxies(C.Config.SaveClashProxy)
+		}.SaveProxies(C.Config.SaveProxyFile)
 		return
 	}
 

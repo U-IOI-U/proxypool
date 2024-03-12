@@ -60,7 +60,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if config.Config.SaveClashProxy == "" {
+	if config.Config.SaveProxyFile == "" {
 		log.Infoln("Do the first crawl...")
 		go app.CrawlGoWithSync() // 抓取主程序
 		go cron.Cron()   // 定时运行
