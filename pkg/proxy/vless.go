@@ -368,7 +368,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 }
 
 var (
-	vlessPlainRe = regexp.MustCompile("vless://([A-Za-z0-9+/_&?=@:%.-])+")
+	vlessPlainRe = regexp.MustCompile("vless://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 func GrepVlessLinkFromString(text string) []string {

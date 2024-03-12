@@ -145,11 +145,11 @@ func ParseHysteria2Link(link string) (*Hysteria2, error) {
 }
 
 var (
-	hysteria2PlainRe = regexp.MustCompile("hysteria2://([A-Za-z0-9+/_&?=@:%.-])+")
+	hysteria2PlainRe = regexp.MustCompile("hysteria2://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 var (
-	hy2PlainRe = regexp.MustCompile("hy2://([A-Za-z0-9+/_&?=@:%.-])+")
+	hy2PlainRe = regexp.MustCompile("hy2://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 func GrepHysteria2LinkFromString(text string) []string {

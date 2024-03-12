@@ -389,7 +389,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 }
 
 var (
-	trojanPlainRe = regexp.MustCompile("trojan(-go)?://([A-Za-z0-9+/_&?=@:%.-])+")
+	trojanPlainRe = regexp.MustCompile("trojan(-go)?://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 func GrepTrojanLinkFromString(text string) []string {

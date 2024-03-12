@@ -116,7 +116,7 @@ func ParseHttpLink(link string) (*CHttp, error) {
 }
 
 var (
-	httpPlainRe = regexp.MustCompile("https://([A-Za-z0-9+/_&?=@:%.-])+")
+	httpPlainRe = regexp.MustCompile("https://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 func GrepHttpLinkFromString(text string) []string {

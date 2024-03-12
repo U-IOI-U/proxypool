@@ -143,7 +143,7 @@ func ParseTuicLink(link string) (*Tuic, error) {
 }
 
 var (
-	tuicPlainRe = regexp.MustCompile("tuic://([A-Za-z0-9+/_&?=@:%.-])+")
+	tuicPlainRe = regexp.MustCompile("tuic://[A-Za-z0-9+/_&=@:%\\[\\].-]+(\\?[A-Za-z0-9+/_&?=@:%.-]+)?")
 )
 
 func GrepTuicLinkFromString(text string) []string {
