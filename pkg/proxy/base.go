@@ -343,8 +343,21 @@ func FixProxyValue(b Proxy) Proxy {
 		if flow, ok := ParseProxyFlow(vless.Flow); ok {
 			vless.Flow = flow
 		}
+		// if http path is nil, mihomo maybe panic
 		if vless.Network == "http" {
-
+			if vless.HTTPOpts != nil {
+				if vless.HTTPOpts.Method == "" {
+					vless.HTTPOpts.Method = "GET"
+				}
+				if len(vless.HTTPOpts.Path) == 0 {
+					vless.HTTPOpts.Path = []string{"/"}
+				}
+			} else {
+				vless.HTTPOpts = &HTTPOptions{
+					Method: "GET",
+					Path:   []string{"/"},
+				}
+			}
 		}
 		vless.TLS = true
 		break

@@ -29,7 +29,9 @@ type Trojan struct {
 	Network        string   `yaml:"network,omitempty" json:"network,omitempty"`
 	CFingerPrint   string   `yaml:"client-fingerprint,omitempty" json:"client-fingerprint,omitempty"`
 	Flow           string   `yaml:"flow,omitempty" json:"flow,omitempty"`
+
 	TcpOpts        *TCPOptions     `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+	HTTPOpts       *HTTPOptions    `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
 	H2Opts         *HTTP2Options   `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
 	GrpcOpts       *GrpcOptions    `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	WSOpts         *WSOptions      `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
@@ -169,6 +171,22 @@ func (t Trojan) Link() (link string) {
 			}
 		}
 		break
+	case "http":
+		query.Set("type", "tcp")
+		query.Set("headerType", "http")
+		if t.HTTPOpts != nil {
+			if len(t.HTTPOpts.Path) > 0 {
+				query.Set("path", url.QueryEscape(t.HTTPOpts.Path[0]))
+			}
+			if len(t.HTTPOpts.Headers) > 0 {
+				if headers, ok := t.HTTPOpts.Headers["Host"]; ok {
+					if len(headers) > 0 {
+						query.Set("host", url.QueryEscape(headers[0]))
+					}
+				}
+			}
+		}
+		break
 	case "tcp":
 	default:
 		if t.TcpOpts != nil {
@@ -178,6 +196,9 @@ func (t Trojan) Link() (link string) {
 			}
 			if t.TcpOpts.Host != "" {
 				query.Set("host", url.QueryEscape(t.TcpOpts.Host))
+			}
+			if t.TcpOpts.Path != "" {
+				query.Set("path", url.QueryEscape(t.TcpOpts.Path))
 			}
 		}
 	}
@@ -255,6 +276,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	fingerprint := moreInfos.Get("fp")
 
 	var tcpopts *TCPOptions
+	var httpopts *HTTPOptions
 	var wsopts *WSOptions
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
@@ -345,15 +367,38 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		if host != "" {
 			host, _ = url.QueryUnescape(host)
 		}
-		headertype := moreInfos.Get("headerType")
-		if !(host == "" && headertype == "") {
-			tcpopts = &TCPOptions{
-				Host:   host,
-				Type:   headertype,
-			}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
 		}
-		if tcpopts == nil {
-			transformType = ""
+
+		headertype := moreInfos.Get("headerType")
+		if headertype == "http" {
+			transformType = "http"
+			httpopts = &HTTPOptions{
+				Method: "GET",
+			}
+			if host != "" {
+				httpopts.Headers = make(map[string][]string, 1)
+				httpopts.Headers["Host"] = []string{host}
+			}
+			if path != "" {
+				httpopts.Path = []string{path}
+			} else {
+				httpopts.Path = []string{"/"}
+			}
+		} else {
+			transformType = "tcp"
+			if !(host == "" && (headertype == "" || headertype == "none") && path == "") {
+				tcpopts = &TCPOptions{
+					Host:   host,
+					Type:   headertype,
+					Path:   path,
+				}
+			}
+			if tcpopts == nil {
+				transformType = ""
+			}
 		}
 		break
 	}
@@ -379,6 +424,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		Flow:           flow,
 
 		TcpOpts:        tcpopts,
+		HTTPOpts:       httpopts,
 		H2Opts:         h2opts,
 		GrpcOpts:       grpcopts,
 		WSOpts:         wsopts,

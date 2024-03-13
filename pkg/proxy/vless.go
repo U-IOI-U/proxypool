@@ -29,6 +29,7 @@ type Vless struct {
 	TLS            bool              `yaml:"tls,omitempty" json:"tls,omitempty"`
 
 	TcpOpts        *TCPOptions       `yaml:"tcp-opts,omitempty" json:"tcp-opts,omitempty"`
+	HTTPOpts       *HTTPOptions      `yaml:"http-opts,omitempty" json:"http-opts,omitempty"`
 	H2Opts         *HTTP2Options     `yaml:"h2-opts,omitempty" json:"h2-opts,omitempty"`
 	GrpcOpts       *GrpcOptions      `yaml:"grpc-opts,omitempty" json:"grpc-opts,omitempty"`
 	WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
@@ -158,6 +159,22 @@ func (v Vless) Link() (link string) {
 			}
 		}
 		break
+	case "http":
+		query.Set("type", "tcp")
+		query.Set("headerType", "http")
+		if v.HTTPOpts != nil {
+			if len(v.HTTPOpts.Path) > 0 {
+				query.Set("path", url.QueryEscape(v.HTTPOpts.Path[0]))
+			}
+			if len(v.HTTPOpts.Headers) > 0 {
+				if headers, ok := v.HTTPOpts.Headers["Host"]; ok {
+					if len(headers) > 0 {
+						query.Set("host", url.QueryEscape(headers[0]))
+					}
+				}
+			}
+		}
+		break
 	case "tcp":
 	default:
 		if v.TcpOpts != nil {
@@ -167,6 +184,9 @@ func (v Vless) Link() (link string) {
 			}
 			if v.TcpOpts.Host != "" {
 				query.Set("host", url.QueryEscape(v.TcpOpts.Host))
+			}
+			if v.TcpOpts.Path != "" {
+				query.Set("path", url.QueryEscape(v.TcpOpts.Path))
 			}
 		}
 	}
@@ -232,6 +252,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 	fingerprint := ParseProxyFingerPrint(moreInfos.Get("fp"))
 
 	var tcpopts *TCPOptions
+	var httpopts *HTTPOptions
 	var wsopts *WSOptions
 	var h2opts *HTTP2Options
 	var grpcopts *GrpcOptions
@@ -322,15 +343,38 @@ func ParseVlessLink(link string) (*Vless, error) {
 		if host != "" {
 			host, _ = url.QueryUnescape(host)
 		}
-		headertype := moreInfos.Get("headerType")
-		if !(host == "" && (headertype == "" || headertype == "none")) {
-			tcpopts = &TCPOptions{
-				Host:   host,
-				Type:   headertype,
-			}
+		path := moreInfos.Get("path")
+		if path != "" {
+			path, _ = url.QueryUnescape(path)
 		}
-		if tcpopts == nil {
-			transformType = ""
+
+		headertype := moreInfos.Get("headerType")
+		if headertype == "http" {
+			transformType = "http"
+			httpopts = &HTTPOptions{
+				Method: "GET",
+			}
+			if host != "" {
+				httpopts.Headers = make(map[string][]string, 1)
+				httpopts.Headers["Host"] = []string{host}
+			}
+			if path != "" {
+				httpopts.Path = []string{path}
+			} else {
+				httpopts.Path = []string{"/"}
+			}
+		} else {
+			transformType = "tcp"
+			if !(host == "" && (headertype == "" || headertype == "none") && path == "") {
+				tcpopts = &TCPOptions{
+					Host:   host,
+					Type:   headertype,
+					Path:   path,
+				}
+			}
+			if tcpopts == nil {
+				transformType = ""
+			}
 		}
 		break
 	}
@@ -358,6 +402,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		SkipCertVerify: true,
 
 		TcpOpts:        tcpopts,
+		HTTPOpts:       httpopts,
 		H2Opts:         h2opts,
 		GrpcOpts:       grpcopts,
 		WSOpts:         wsopts,
