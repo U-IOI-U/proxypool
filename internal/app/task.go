@@ -138,7 +138,7 @@ func CrawlGo(pGetters PGetterList) {
 			Base: provider.Base{
 				Proxies: &proxies,
 			},
-		}.SaveProxies(C.Config.SaveProxyFile + "_all")
+		}.SaveProxies(C.Config.SaveProxyFile + "_all", C.Config.SaveProxyMode)
 	}
 
 	// Health Check
@@ -192,7 +192,7 @@ func CrawlGo(pGetters PGetterList) {
 			Base: provider.Base{
 				Proxies: &proxies,
 			},
-		}.SaveProxies(C.Config.SaveProxyFile)
+		}.SaveProxies(C.Config.SaveProxyFile, C.Config.SaveProxyMode)
 		return
 	}
 
