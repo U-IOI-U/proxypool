@@ -466,10 +466,6 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			alterId = 0
 		}
 
-		if vmessJson.Scy == "" {
-			vmessJson.Scy = "auto"
-		}
-
 		tls := vmessJson.Tls == "tls"
 
 		alpn := ParseProxyALPN(vmessJson.ALPN)

@@ -88,7 +88,7 @@ func GetAllProxies() (proxies proxy.ProxyList) {
 		p, err := proxy.ParseProxyFromLink(proxyDB.Link)
 		if err == nil && p != nil {
 			p.SetUseable(false)
-			proxies = append(proxies, p)
+			proxies = append(proxies, proxy.FixProxyValue(p))
 		}
 	}
 	return
