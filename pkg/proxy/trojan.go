@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/u-ioi-u/proxypool/log"
 )
 
 var (
@@ -282,10 +280,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
 	var kcpopts *KCPOptions
-	transformType, chg := ParseProxyNetwork(moreInfos.Get("type"))
-	if chg < 0 {
-		log.Debugln("Proxy Network Error. [ %s ]", link)
-	}
+	transformType, _ := ParseProxyNetwork(moreInfos.Get("type"))
 	switch transformType {
 	case "ws":
 		host := moreInfos.Get("host")
