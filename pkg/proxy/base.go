@@ -415,15 +415,6 @@ func CheckProxyClashSupported(b Proxy) bool {
 }
 
 func GoodNodeThatClashUnsupported(b Proxy) bool {
-	switch b.TypeName() {
-	case "hysteria":
-		hysteria := b.(*Hysteria)
-		if len(hysteria.Protocol) == 0 || hysteria.Protocol == "udp" {
-			return true
-		}
-	default:
-	}
-
 	return !CheckProxyClashSupported(b)
 }
 
