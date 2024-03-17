@@ -7,6 +7,7 @@ import (
 
 	"github.com/u-ioi-u/proxypool/log"
 	"github.com/u-ioi-u/proxypool/pkg/proxy"
+	"github.com/u-ioi-u/proxypool/pkg/tool"
 )
 
 // Clash provides functions that make proxies support clash client
@@ -23,7 +24,7 @@ func (c Pfile) Provide(mode string) string {
 				resultBuilder.WriteString(s + "\n")
 			}
 		}
-	} else {/* link */
+	} else {/* link */ /* sub */
 		for _, p := range *c.Proxies {
 			if s := p.Link(); len(s) > 0 {
 				pp, _ := proxy.ParseProxyFromLink(s)
@@ -41,6 +42,9 @@ func (c Pfile) Provide(mode string) string {
 		}
 	}
 
+	if mode == "sub" {
+		return tool.Base64EncodeString(resultBuilder.String(), false)
+	}
 	return resultBuilder.String()
 }
 
