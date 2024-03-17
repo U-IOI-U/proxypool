@@ -122,7 +122,7 @@ func (ps ProxyList) AddCountry() ProxyList {
 		if (ps[i].BaseInfo().Country == "") {
 			_, country, err := geoIp.GeoIpDB.Find(ps[i].BaseInfo().Server) // IP库不准
 			if err != nil {
-				country = "🏁 ZZ"
+				country = "🏁ZZ"
 			}
 			ps[i].SetCountry(country)
 			// trojan依赖域名？<-这是啥?不管什么情况感觉都不应该替换域名为IP（主要是IP库的质量和节点质量不该挂钩）
