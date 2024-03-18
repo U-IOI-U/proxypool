@@ -78,7 +78,9 @@ suburl-blacklist-suffix:
   - ".tgs"
   - ".pdf"
   - ".svg"
+  - ".MP4"
   - "announce"
+  - "releases"
 # 在Subscribe类型的URL中排除下面开头的网址
 suburl-blacklist-prefix:
   - "http://www.w3.org"
@@ -86,6 +88,23 @@ suburl-blacklist-prefix:
   - "https://youtube.com"              # youtube
   - "https://m.youtube.com"            # youtube
   - "https://www.youtube.com"          # youtube
+  - "https://apps.apple.com"
+  - "https://testflight.apple.com"
+  - "http://t.me/"
+  - "https://t.me/"
+  - "https://bard.google.com/chat"
+  - "https://chromewebstore.google.com"
+  - "https://speed.cloudflare.com"
+  - "https://y.music.163.com"
+  - "https://m.bilibili.com"
+  - "https://www.bilibili.com"
+  - "https://sj.qq.com"
+  - "https://t.youku.com"
+  - "https://haoshangle.com"
+  - "https://mp.weixin.qq.com"
+  - "https://wannaflix.com/dl.php"
+  - "https://www.videolan.org/vlc/"
+  - "https://github.com/NiceVPN123/NiceVPN"
 # 在Subscribe类型的URL中排除下面的网址
 suburl-blacklist:
   "https://vi.icarephone.com/seven/tmp/1220.txt":  # 节点全部失效
