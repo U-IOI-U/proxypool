@@ -100,7 +100,13 @@ func CrawlGo(pGetters PGetterList) {
 	}
 	proxies = proxies.Deduplication()
 
-	tool.SubScribeHistoryShow("debug")
+	// show subscribe url
+	if C.Config.ShowSubscribe == "showall" || C.Config.ShowSubscribe == "showsuc" {
+		log.Debugln(tool.SubScribeHistoryShow(C.Config.ShowSubscribe))
+	} else {
+		tool.SubScribeHistoryShow("debug")
+	}
+	
 	proxies.NameClear()
 	proxies = proxies.Derive()
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))

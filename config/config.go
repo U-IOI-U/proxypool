@@ -49,6 +49,7 @@ type ConfigOptions struct {
 	ActiveMaxNumber       uint16   `json:"active-max-number" yaml:"active-max-number"`
 	SaveProxyFile         string   `json:"save-proxy-file,omitempty" yaml:"save-proxy-file,omitempty"`
 	SaveProxyMode         string   `json:"save-proxy-mode,omitempty" yaml:"save-proxy-mode,omitempty"`
+	ShowSubscribe         string   `json:"show-subscribe-mode,omitempty" yaml:"show-subscribe-mode,omitempty"`
 }
 
 // Config 配置
