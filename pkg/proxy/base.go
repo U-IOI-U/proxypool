@@ -270,6 +270,11 @@ func CheckProxyValid(b Proxy) bool {
 		if !CheckSSCipher(ss.Cipher) {
 			return false
 		}
+		if ss.Plugin == "v2ray-plugin" {
+			if _, ok := ss.PluginOpts["mode"]; !ok {
+				return false
+			}
+		}
 		break
 	case "ssr":
 		ssr := b.(*ShadowsocksR)
