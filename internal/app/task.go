@@ -80,6 +80,8 @@ func CrawlGo(pGetters PGetterList) {
 
 			proxies = dbProxies.UniqAppendProxyList(proxies)
 		}
+	} else {
+		cache.LastCrawlTime = "抓取中..."
 	}
 
 	if proxies == nil {
@@ -128,15 +130,20 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("SSRProxiesCount: %d", cache.SSRProxiesCount)
 	cache.VmessProxiesCount = proxies.TypeLen("vmess")
 	log.Infoln("VmessProxiesCount: %d", cache.VmessProxiesCount)
-	log.Infoln("VlessProxiesCount: %d", proxies.TypeLen("vless"))
+	cache.VlessProxiesCount = proxies.TypeLen("vless")
+	log.Infoln("VlessProxiesCount: %d", cache.VlessProxiesCount)
 	cache.TrojanProxiesCount = proxies.TypeLen("trojan")
 	log.Infoln("TrojanProxiesCount: %d", cache.TrojanProxiesCount)
-	log.Infoln("HttpProxiesCount: %d", proxies.TypeLen("http"))
-	log.Infoln("SnellProxiesCount: %d", proxies.TypeLen("snell"))
-	log.Infoln("TuicProxiesCount: %d", proxies.TypeLen("tuic"))
-	log.Infoln("HysteriaProxiesCount: %d", proxies.TypeLen("hysteria"))
-	log.Infoln("Hysteria2ProxiesCount: %d", proxies.TypeLen("hysteria2"))
-	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
+	cache.HttpProxiesCount = proxies.TypeLen("http")
+	log.Infoln("HttpProxiesCount: %d", cache.HttpProxiesCount)
+	cache.SnellProxiesCount = proxies.TypeLen("snell")
+	log.Infoln("SnellProxiesCount: %d", cache.SnellProxiesCount)
+	cache.TuicProxiesCount = proxies.TypeLen("tuic")
+	log.Infoln("TuicProxiesCount: %d", cache.TuicProxiesCount)
+	cache.HysteriaProxiesCount = proxies.TypeLen("hysteria")
+	log.Infoln("HysteriaProxiesCount: %d", cache.HysteriaProxiesCount)
+	cache.Hysteria2ProxiesCount = proxies.TypeLen("hysteria2")
+	log.Infoln("Hysteria2ProxiesCount: %d", cache.Hysteria2ProxiesCount)
 
 	// save all proxy
 	if C.Config.SaveProxyFile != "" {
@@ -189,6 +196,7 @@ func CrawlGo(pGetters PGetterList) {
 	// 可用节点存储
 	cache.SetProxies("proxies", proxies)
 	cache.UsefullProxiesCount = proxies.Len()
+	cache.LastCrawlTime = time.Now().In(location).Format("2006-01-02 15:04:05")
 
 	log.Infoln("Usablility checking done. Open %s to check", C.Config.HostUrl())
 

@@ -7,7 +7,13 @@ var (
 	SSRProxiesCount     = 0
 	SSProxiesCount      = 0
 	VmessProxiesCount   = 0
+	VlessProxiesCount   = 0
 	TrojanProxiesCount  = 0
+	HttpProxiesCount    = 0
+	SnellProxiesCount   = 0
+	TuicProxiesCount    = 0
+	HysteriaProxiesCount  = 0
+	Hysteria2ProxiesCount = 0
 	UsefullProxiesCount = 0
 	LastCrawlTime       = "程序正在启动，请于3分钟后刷新页面"
 	IsSpeedTest         = "未开启"
