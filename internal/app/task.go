@@ -108,8 +108,7 @@ func CrawlGo(pGetters PGetterList) {
 	} else {
 		tool.SubScribeHistoryShow("debug")
 	}
-	
-	proxies.NameClear()
+
 	proxies = proxies.Derive()
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
 
@@ -168,10 +167,10 @@ func CrawlGo(pGetters PGetterList) {
 	// proxies = healthcheck.CleanBadProxies(proxies)
 
 	log.Infoln("CrawlGo clash usable proxy count: %d", len(proxies))
-	// 节点添加Country信息
-	proxies.AddCountry()
+	// 节点添加Country信息并排序
+	proxies.AddCountry().Sort()
 	// Format name like US_01 sorted by country
-	proxies.NameAddCounrty().Sort()
+	proxies.NameSetCountry()
 	log.Infoln("Proxy rename DONE!")
 
 	// Relay check and rename
