@@ -6,7 +6,7 @@ go 1.20
 
 require (
 	github.com/Dreamacro/clash v1.16.0
-	github.com/metacubex/mihomo v1.18.5
+	github.com/metacubex/mihomo v1.18.6
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cache v1.2.0
