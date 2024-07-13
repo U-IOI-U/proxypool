@@ -304,6 +304,9 @@ func CheckProxyValid(b Proxy) bool {
 		if !CheckVlessUUID(vless.UUID) {
 			return false
 		}
+		// if vless.Flow == "xtls-rprx-vision" && vless.RealityOpts == nil {
+		// 	return false
+		// }
 		break
 	case "snell":
 		break
@@ -347,6 +350,10 @@ func FixProxyValue(b Proxy) Proxy {
 		vless := b.(*Vless)
 		if flow, ok := ParseProxyFlow(vless.Flow); ok {
 			vless.Flow = flow
+		}
+		// if flow is xtls-rprx-vision, reality-opts is nil, mihomo maybe panic
+		if vless.RealityOpts == nil && vless.Flow == "xtls-rprx-vision"{
+			vless.Flow = ""
 		}
 		// if http path is nil, mihomo maybe panic
 		if vless.Network == "http" {
