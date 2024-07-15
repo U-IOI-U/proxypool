@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	_ "net/http/pprof"
+	"net/http"
 	"os"
 
 	"github.com/u-ioi-u/proxypool/config"
@@ -20,10 +21,6 @@ var debugMode = false
 func main() {
 	var configFilePath = ""
 
-	//go func() {
-	//	http.ListenAndServe("0.0.0.0:6060", nil)
-	//}()
-
 	flag.StringVar(&configFilePath, "c", "", "path to config file: config.yaml")
 	flag.BoolVar(&debugMode, "d", false, "debug output")
 	flag.Parse()
@@ -32,6 +29,10 @@ func main() {
 	if debugMode {
 		log.SetLevel(log.DEBUG)
 		log.Debugln("=======Debug Mode=======")
+
+		go func() {
+			http.ListenAndServe("0.0.0.0:6060", nil)
+		}()
 	}
 	if configFilePath == "" {
 		configFilePath = os.Getenv("CONFIG_FILE")
