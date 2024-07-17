@@ -138,7 +138,7 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 			}
 		}
 		break
-	case "tcp":
+	// case "tcp":
 	default:
 		v.Network = "tcp"
 		if tmp.TcpOpts != nil {
@@ -297,7 +297,7 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 			vj.Path = v.KcpOpts.Seed
 		}
 		break
-	case "tcp":
+	// case "tcp":
 	default:
 		if v.TcpOpts != nil {
 			vj.Type = v.TcpOpts.Type
@@ -540,7 +540,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 			}
 			break
-		case "tcp":
+		// case "tcp":
 		default:
 			vmessJson.Net = "tcp"
 			if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {

@@ -65,7 +65,7 @@ func (t Tuic) Link() (link string) {
 		query.Set("udp_relay_mode", t.UDPRelayMode)
 	}
 	if t.SNI != "" {
-		query.Set("sni", url.QueryEscape(t.SNI))
+		query.Set("sni", t.SNI)
 	}
 	if t.SkipCertVerify {
 		query.Set("allow_insecure", "1")
@@ -114,7 +114,6 @@ func ParseTuicLink(link string) (*Tuic, error) {
 	udp_relay_mode := moreInfos.Get("udp_relay_mode")
 
 	sni := moreInfos.Get("sni")
-	sni, _ = url.QueryUnescape(sni)
 
 	skip_certverify := true
 	if moreInfos.Get("allow_insecure") == "0" {

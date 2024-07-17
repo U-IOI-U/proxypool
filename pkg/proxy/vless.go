@@ -89,7 +89,7 @@ func (v Vless) Link() (link string) {
 		query.Set("security", "tls")
 	}
 	if v.SNI != "" {
-		query.Set("sni", url.QueryEscape(v.SNI))
+		query.Set("sni", v.SNI)
 	}
 	if len(v.ALPN) > 0 {
 		query.Set("alpn", strings.Join(v.ALPN, ","))
@@ -103,10 +103,10 @@ func (v Vless) Link() (link string) {
 		query.Set("type", v.Network)
 		if v.WSOpts != nil {
 			if v.WSOpts.Path != "" {
-				query.Set("path", url.QueryEscape(v.WSOpts.Path))
+				query.Set("path", v.WSOpts.Path)
 			}
 			if len(v.WSOpts.Headers) > 0 {
-				query.Set("host", url.QueryEscape(v.WSOpts.Headers["Host"]))
+				query.Set("host", v.WSOpts.Headers["Host"])
 			}
 		}
 		break
@@ -114,7 +114,7 @@ func (v Vless) Link() (link string) {
 		query.Set("type", v.Network)
 		if v.GrpcOpts != nil {
 			if v.GrpcOpts.GrpcServiceName != "" {
-				query.Set("serviceName", url.QueryEscape(v.GrpcOpts.GrpcServiceName))
+				query.Set("serviceName", v.GrpcOpts.GrpcServiceName)
 			}
 			if v.GrpcOpts.Mode != "" {
 				query.Set("mode", v.GrpcOpts.Mode)
@@ -125,10 +125,10 @@ func (v Vless) Link() (link string) {
 		query.Set("type", "http")
 		if v.H2Opts != nil {
 			if len(v.H2Opts.Host) > 0 {
-				query.Set("host", url.QueryEscape(v.H2Opts.Host[0]))
+				query.Set("host", v.H2Opts.Host[0])
 			}
 			if v.H2Opts.Path != "" {
-				query.Set("path", url.QueryEscape(v.H2Opts.Path))
+				query.Set("path", v.H2Opts.Path)
 			}
 		}
 		break
@@ -162,18 +162,18 @@ func (v Vless) Link() (link string) {
 		query.Set("headerType", "http")
 		if v.HTTPOpts != nil {
 			if len(v.HTTPOpts.Path) > 0 {
-				query.Set("path", url.QueryEscape(v.HTTPOpts.Path[0]))
+				query.Set("path", v.HTTPOpts.Path[0])
 			}
 			if len(v.HTTPOpts.Headers) > 0 {
 				if headers, ok := v.HTTPOpts.Headers["Host"]; ok {
 					if len(headers) > 0 {
-						query.Set("host", url.QueryEscape(headers[0]))
+						query.Set("host", headers[0])
 					}
 				}
 			}
 		}
 		break
-	case "tcp":
+	// case "tcp":
 	default:
 		if v.TcpOpts != nil {
 			query.Set("type", "tcp")
@@ -181,10 +181,10 @@ func (v Vless) Link() (link string) {
 				query.Set("headerType", v.TcpOpts.Type)
 			}
 			if v.TcpOpts.Host != "" {
-				query.Set("host", url.QueryEscape(v.TcpOpts.Host))
+				query.Set("host", v.TcpOpts.Host)
 			}
 			if v.TcpOpts.Path != "" {
-				query.Set("path", url.QueryEscape(v.TcpOpts.Path))
+				query.Set("path", v.TcpOpts.Path)
 			}
 		}
 	}
@@ -198,6 +198,20 @@ func (v Vless) Link() (link string) {
 	}
 
 	return uri.String()
+}
+
+func LoopQueryUnescape(s string) string {
+	for {
+		if s == "" || !strings.Contains(s, "%") {
+			break
+		}
+		_s, _ := url.QueryUnescape(s)
+		if strings.Compare(s, _s) == 0 {
+			break
+		}
+		s = _s
+	}
+	return s
 }
 
 func ParseVlessLink(link string) (*Vless, error) {
@@ -241,9 +255,6 @@ func ParseVlessLink(link string) (*Vless, error) {
 	}
 
 	sni := moreInfos.Get("sni")
-	if sni != "" {
-		sni, _ = url.QueryUnescape(sni)
-	}
 
 	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
@@ -260,13 +271,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 	switch transformType {
 	case "ws":
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
-		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
+		path := LoopQueryUnescape(moreInfos.Get("path"))
 		if !(host == "" && path == "") {
 			wsopts = &WSOptions{
 				Path: path,
@@ -278,10 +283,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		}
 		break
 	case "grpc":
-		srvname := moreInfos.Get("serviceName")
-		if srvname != "" {
-			srvname, _ = url.QueryUnescape(srvname)
-		}
+		srvname := LoopQueryUnescape(moreInfos.Get("serviceName"))
 		mode := moreInfos.Get("mode")
 		if !(srvname == "" && mode == "") {
 			grpcopts = &GrpcOptions{
@@ -292,13 +294,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		break
 	case "http": /* h2 */
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
 		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
 		if !(host == "" && path == "") {
 			h2opts = &HTTP2Options{
 				Path: path,
@@ -332,17 +328,10 @@ func ParseVlessLink(link string) (*Vless, error) {
 			}
 		}
 		break
-	case "tcp": /* default */
+	// case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
 		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
-
 		headertype := moreInfos.Get("headerType")
 		if headertype == "http" {
 			transformType = "http"

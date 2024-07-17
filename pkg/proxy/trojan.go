@@ -101,7 +101,7 @@ func (t Trojan) Link() (link string) {
 		query.Set("security", "tls")
 	}
 	if t.SNI != "" {
-		query.Set("sni", url.QueryEscape(t.SNI))
+		query.Set("sni", t.SNI)
 	}
 	if len(t.ALPN) > 0 {
 		query.Set("alpn", strings.Join(t.ALPN, ","))
@@ -115,10 +115,10 @@ func (t Trojan) Link() (link string) {
 		query.Set("type", t.Network)
 		if t.WSOpts != nil {
 			if t.WSOpts.Path != "" {
-				query.Set("path", url.QueryEscape(t.WSOpts.Path))
+				query.Set("path", t.WSOpts.Path)
 			}
 			if len(t.WSOpts.Headers) > 0 {
-				query.Set("host", url.QueryEscape(t.WSOpts.Headers["Host"]))
+				query.Set("host", t.WSOpts.Headers["Host"])
 			}
 		}
 		break
@@ -126,7 +126,7 @@ func (t Trojan) Link() (link string) {
 		query.Set("type", t.Network)
 		if t.GrpcOpts != nil {
 			if t.GrpcOpts.GrpcServiceName != "" {
-				query.Set("serviceName", url.QueryEscape(t.GrpcOpts.GrpcServiceName))
+				query.Set("serviceName", t.GrpcOpts.GrpcServiceName)
 			}
 			if t.GrpcOpts.Mode != "" {
 				query.Set("mode", t.GrpcOpts.Mode)
@@ -137,10 +137,10 @@ func (t Trojan) Link() (link string) {
 		query.Set("type", "http")
 		if t.H2Opts != nil {
 			if len(t.H2Opts.Host) > 0 {
-				query.Set("host", url.QueryEscape(t.H2Opts.Host[0]))
+				query.Set("host", t.H2Opts.Host[0])
 			}
 			if t.H2Opts.Path != "" {
-				query.Set("path", url.QueryEscape(t.H2Opts.Path))
+				query.Set("path", t.H2Opts.Path)
 			}
 		}
 		break
@@ -174,18 +174,18 @@ func (t Trojan) Link() (link string) {
 		query.Set("headerType", "http")
 		if t.HTTPOpts != nil {
 			if len(t.HTTPOpts.Path) > 0 {
-				query.Set("path", url.QueryEscape(t.HTTPOpts.Path[0]))
+				query.Set("path", t.HTTPOpts.Path[0])
 			}
 			if len(t.HTTPOpts.Headers) > 0 {
 				if headers, ok := t.HTTPOpts.Headers["Host"]; ok {
 					if len(headers) > 0 {
-						query.Set("host", url.QueryEscape(headers[0]))
+						query.Set("host", headers[0])
 					}
 				}
 			}
 		}
 		break
-	case "tcp":
+	// case "tcp":
 	default:
 		if t.TcpOpts != nil {
 			query.Set("type", "tcp")
@@ -193,10 +193,10 @@ func (t Trojan) Link() (link string) {
 				query.Set("headerType", t.TcpOpts.Type)
 			}
 			if t.TcpOpts.Host != "" {
-				query.Set("host", url.QueryEscape(t.TcpOpts.Host))
+				query.Set("host", t.TcpOpts.Host)
 			}
 			if t.TcpOpts.Path != "" {
-				query.Set("path", url.QueryEscape(t.TcpOpts.Path))
+				query.Set("path", t.TcpOpts.Path)
 			}
 		}
 	}
@@ -265,9 +265,6 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	}
 
 	sni := moreInfos.Get("sni")
-	if sni != "" {
-		sni, _ = url.QueryUnescape(sni)
-	}
 
 	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
@@ -284,13 +281,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	switch transformType {
 	case "ws":
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
-		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
+		path := LoopQueryUnescape(moreInfos.Get("path"))
 		if !(host == "" && path == "") {
 			wsopts = &WSOptions{
 				Path: path,
@@ -302,10 +293,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		}
 		break
 	case "grpc":
-		srvname := moreInfos.Get("serviceName")
-		if srvname != "" {
-			srvname, _ = url.QueryUnescape(srvname)
-		}
+		srvname := LoopQueryUnescape(moreInfos.Get("serviceName"))
 		mode := moreInfos.Get("mode")
 		if !(srvname == "" && mode == "") {
 			grpcopts = &GrpcOptions{
@@ -316,13 +304,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		break
 	case "http": /* h2 */
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
 		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
 		if !(host == "" && path == "") {
 			h2opts = &HTTP2Options{
 				Path: path,
@@ -356,17 +338,10 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			}
 		}
 		break
-	case "tcp": /* default */
+	// case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
-		if host != "" {
-			host, _ = url.QueryUnescape(host)
-		}
 		path := moreInfos.Get("path")
-		if path != "" {
-			path, _ = url.QueryUnescape(path)
-		}
-
 		headertype := moreInfos.Get("headerType")
 		if headertype == "http" {
 			transformType = "http"

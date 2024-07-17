@@ -54,7 +54,7 @@ func (t CHttp) Clone() Proxy {
 func (t CHttp) Link() (link string) {
 	query := url.Values{}
 	if t.SNI != "" {
-		query.Set("sni", url.QueryEscape(t.SNI))
+		query.Set("sni", t.SNI)
 	}
 
 	uri := url.URL{
@@ -94,7 +94,6 @@ func ParseHttpLink(link string) (*CHttp, error) {
 
 	moreInfos := uri.Query()
 	sni := moreInfos.Get("sni")
-	sni, _ = url.QueryUnescape(sni)
 
 	if port == 0 {
 		return nil, ErrorNotHttpLink

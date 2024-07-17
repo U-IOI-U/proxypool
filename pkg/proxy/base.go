@@ -332,8 +332,7 @@ func FixProxyValue(b Proxy) Proxy {
 			vmess.Cipher = cipher
 		}
 		switch vmess.Network {
-		case "h2":
-		case "grpc":
+		case "h2", "grpc":
 			vmess.TLS = true
 			break
 		}

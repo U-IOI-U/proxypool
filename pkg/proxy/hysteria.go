@@ -117,7 +117,7 @@ func (h Hysteria) Link() (link string) {
 		query.Set("downmbps", h.DownSpeed)
 	}
 	if h.SNI != "" {
-		query.Set("peer", url.QueryEscape(h.SNI))
+		query.Set("peer", h.SNI)
 	}
 	if h.SkipCertVerify {
 		query.Set("insecure", "1")
@@ -156,9 +156,6 @@ func ParseHysteriaLink(link string) (*Hysteria, error) {
 	downspeed := moreInfos.Get("downmbps")
 
 	sni := moreInfos.Get("peer")
-	if sni != "" {
-		sni, _ = url.QueryUnescape(sni)
-	}
 
 	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 

@@ -56,10 +56,10 @@ func (s Snell) Link() (link string) {
 	}
 	if len(s.ObfsOpts) != 0 {
 		if mode, ok := s.ObfsOpts["mode"]; ok {
-			query.Set("mode", url.QueryEscape(mode))
+			query.Set("mode", mode)
 		}
 		if host, ok := s.ObfsOpts["host"]; ok {
-			query.Set("host", url.QueryEscape(host))
+			query.Set("host", host)
 		}
 	}
 
@@ -108,13 +108,11 @@ func ParseSnellLink(link string) (*Snell, error) {
 	obfsOpts := make(map[string]string)
 
 	mode := moreInfos.Get("mode")
-	mode, _ = url.QueryUnescape(mode)
 	if mode != "" {
 		obfsOpts["mode"] = mode
 	}
 
 	host := moreInfos.Get("host")
-	host, _ = url.QueryUnescape(host)
 	if host != "" {
 		obfsOpts["host"] = host
 	}

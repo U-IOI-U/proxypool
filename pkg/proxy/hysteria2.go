@@ -58,7 +58,7 @@ func (h Hysteria2) Link() (link string) {
 		query.Set("alpn", strings.Join(h.ALPN, ","))
 	}
 	if h.SNI != "" {
-		query.Set("sni", url.QueryEscape(h.SNI))
+		query.Set("sni", h.SNI)
 	}
 	if h.Obfs != "" {
 		query.Set("obfs", h.Obfs)
@@ -101,13 +101,8 @@ func ParseHysteria2Link(link string) (*Hysteria2, error) {
 
 	// sni or peer
 	sni := moreInfos.Get("sni")
-	if sni != "" {
-		sni, _ = url.QueryUnescape(sni)
-	} else {
+	if sni == "" {
 		sni = moreInfos.Get("peer")
-		if sni != "" {
-			sni, _ = url.QueryUnescape(sni)
-		}
 	}
 
 	// alpn

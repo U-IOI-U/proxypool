@@ -176,8 +176,7 @@ func ParseSSLink(link string) (*Shadowsocks, error) {
 		if err == nil {
 			plugin = pluginInfos.Get("plugin")
 			switch plugin {
-			case "obfs":
-			case "obfs-local":
+			case "obfs", "obfs-local":
 				plugin = "obfs"
 				if _mode := pluginInfos.Get("obfs"); _mode != "" {
 					pluginOpts["mode"] = _mode
