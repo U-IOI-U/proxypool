@@ -83,7 +83,7 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 	v.SkipCertVerify = tmp.SkipCertVerify
 
 	switch tmp.Network {
-	case "ws":
+	case "ws", "httpupgrade":
 		wsopts := WSOptions{}
 		if tmp.WSPath != "" {
 			wsopts.Path = tmp.WSPath
@@ -99,7 +99,11 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 			wsopts.Headers = tmp.WSOpts.Headers
 		}
 
-		if !(wsopts.Path == "" && len(wsopts.Headers) == 0) {
+		if tmp.WSOpts != nil && tmp.WSOpts.V2rayHttpUpgradeFastOpen == true {
+			wsopts.V2rayHttpUpgradeFastOpen = true
+		}
+
+		if !(wsopts.Path == "" && len(wsopts.Headers) == 0 && wsopts.V2rayHttpUpgradeFastOpen == false) {
 			v.WSOpts = &wsopts
 		}
 		break
@@ -245,7 +249,7 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 		vj.ALPN = strings.Join(v.ALPN, ",")
 	}
 	switch v.Network {
-	case "ws":
+	case "ws", "httpupgrade":
 		if v.WSOpts != nil {
 			vj.Type = "none"
 			vj.Path =  v.WSOpts.Path
@@ -478,10 +482,15 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		var quicopts *QUICOptions
 		var kcpopts *KCPOptions
 		switch vmessJson.Net {
-		case "ws":
-			if !(vmessJson.Host == "" && vmessJson.Path == "") {
+		case "ws", "httpupgrade":
+			fastopen := false
+			if vmessJson.Net == "httpupgrade" {
+				fastopen = true
+			}
+			if !(vmessJson.Host == "" && vmessJson.Path == "" && fastopen == false) {
 				wsopts = &WSOptions{
 					Path: vmessJson.Path,
+					V2rayHttpUpgradeFastOpen: fastopen,
 				}
 				if vmessJson.Host != "" {
 					wsopts.Headers = make(map[string]string, 0)

@@ -99,7 +99,7 @@ func (v Vless) Link() (link string) {
 	}
 
 	switch v.Network {
-	case "ws":
+	case "ws", "httpupgrade":
 		query.Set("type", v.Network)
 		if v.WSOpts != nil {
 			if v.WSOpts.Path != "" {
@@ -269,12 +269,17 @@ func ParseVlessLink(link string) (*Vless, error) {
 	var kcpopts *KCPOptions
 	transformType, _ := ParseProxyNetwork(moreInfos.Get("type"))
 	switch transformType {
-	case "ws":
+	case "ws", "httpupgrade":
 		host := moreInfos.Get("host")
 		path := LoopQueryUnescape(moreInfos.Get("path"))
-		if !(host == "" && path == "") {
+		fastopen := false
+		if transformType == "httpupgrade" {
+			fastopen = true
+		}
+		if !(host == "" && path == "" && fastopen == false) {
 			wsopts = &WSOptions{
 				Path: path,
+				V2rayHttpUpgradeFastOpen: fastopen,
 			}
 			if host != "" {
 				wsopts.Headers = make(map[string]string, 0)

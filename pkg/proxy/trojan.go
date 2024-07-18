@@ -111,7 +111,7 @@ func (t Trojan) Link() (link string) {
 	}
 
 	switch t.Network {
-	case "ws":
+	case "ws", "httpupgrade":
 		query.Set("type", t.Network)
 		if t.WSOpts != nil {
 			if t.WSOpts.Path != "" {
@@ -279,12 +279,17 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	var kcpopts *KCPOptions
 	transformType, _ := ParseProxyNetwork(moreInfos.Get("type"))
 	switch transformType {
-	case "ws":
+	case "ws", "httpupgrade":
 		host := moreInfos.Get("host")
 		path := LoopQueryUnescape(moreInfos.Get("path"))
-		if !(host == "" && path == "") {
+		fastopen := false
+		if transformType == "httpupgrade" {
+			fastopen = true
+		}
+		if !(host == "" && path == "" && fastopen == false) {
 			wsopts = &WSOptions{
 				Path: path,
+				V2rayHttpUpgradeFastOpen: fastopen,
 			}
 			if host != "" {
 				wsopts.Headers = make(map[string]string, 0)

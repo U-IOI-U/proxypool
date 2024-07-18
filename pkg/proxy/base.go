@@ -28,8 +28,10 @@ type TCPOptions struct {
 type WSOptions struct {
 	Path    string            `yaml:"path,omitempty" json:"path,omitempty"`
 	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
-	// EarlyDataMax    int       `yaml:"max-early-data,omitempty" json:"max-early-data,omitempty"`
-	// EarlyDataHeader string    `yaml:"early-data-header-name,omitempty" json:"early-data-header-name,omitempty"`
+	MaxEarlyData             int    `yaml:"max-early-data,omitempty" json:"max-early-data,omitempty"`
+	EarlyDataHeaderName      string `yaml:"early-data-header-name,omitempty" json:"early-data-header-name,omitempty"`
+	V2rayHttpUpgrade         bool   `yaml:"v2ray-http-upgrade,omitempty" json:"v2ray-http-upgrade,omitempty"`
+	V2rayHttpUpgradeFastOpen bool   `yaml:"v2ray-http-upgrade-fast-open,omitempty" json:"v2ray-http-upgrade-fast-open,omitempty"`
 }
 
 type HTTPOptions struct {
@@ -437,7 +439,7 @@ func ParseProxyNetwork(n string) (string, int) {
 		return "", 1
 	} else if n == "trojangrpc" || n == "trgrpc" || n == "mm_grpc" || n == "GRPC" {
 		return "grpc", 1
-	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp") {
+	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp" || n == "httpupgrade") {
 		return "tcp", -1
 	}
 	return n, 0
