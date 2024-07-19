@@ -281,8 +281,9 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 		}
 		break
 	case "http":
+		vj.Net = "tcp"
+		vj.Type = "http"
 		if v.HTTPOpts != nil {
-			vj.Type = v.HTTPOpts.Method
 			if len(v.HTTPOpts.Path) > 0 {
 				vj.Path = v.HTTPOpts.Path[0]
 			}
@@ -527,20 +528,6 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 			}
 			break
-		case "http":
-			if !(vmessJson.Type == "" && vmessJson.Host == "" && vmessJson.Path == "") {
-				httpopts = &HTTPOptions{
-					Method: vmessJson.Type,
-				}
-				if vmessJson.Host != "" {
-					httpopts.Headers = make(map[string][]string, 0)
-					httpopts.Headers["Host"] = []string{vmessJson.Host}
-				}
-				if vmessJson.Path != "" {
-					httpopts.Path = []string{vmessJson.Path}
-				}
-			}
-			break
 		case "kcp":
 			if !(vmessJson.Type == "" && vmessJson.Path == "") {
 				kcpopts = &KCPOptions{
@@ -551,12 +538,26 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			break
 		// case "tcp":
 		default:
-			vmessJson.Net = "tcp"
-			if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {
-				tcpopts = &TCPOptions{
-					Type: vmessJson.Type,
-					Host: vmessJson.Host,
-					Path: vmessJson.Path,
+			if vmessJson.Type == "http" {
+				vmessJson.Net = "http"
+				httpopts = &HTTPOptions{
+					Method: "GET",
+				}
+				if vmessJson.Host != "" {
+					httpopts.Headers = make(map[string][]string, 0)
+					httpopts.Headers["Host"] = []string{vmessJson.Host}
+				}
+				if vmessJson.Path != "" {
+					httpopts.Path = []string{vmessJson.Path}
+				}
+			} else {
+				vmessJson.Net = "tcp"
+				if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {
+					tcpopts = &TCPOptions{
+						Type: vmessJson.Type,
+						Host: vmessJson.Host,
+						Path: vmessJson.Path,
+					}
 				}
 			}
 			break
