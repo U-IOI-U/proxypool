@@ -88,22 +88,31 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 		if tmp.WSPath != "" {
 			wsopts.Path = tmp.WSPath
 		}
-		if tmp.WSOpts != nil && tmp.WSOpts.Path != "" {
-			wsopts.Path = tmp.WSOpts.Path
-		}
 
 		if len(tmp.WSHeaders) > 0 {
 			wsopts.Headers = tmp.WSHeaders
 		}
-		if tmp.WSOpts != nil && len(tmp.WSOpts.Headers) > 0 {
-			wsopts.Headers = tmp.WSOpts.Headers
+
+		if tmp.WSOpts != nil {
+			if tmp.WSOpts.Path != "" {
+				wsopts.Path = tmp.WSOpts.Path
+			}
+
+			if len(tmp.WSOpts.Headers) > 0 {
+				wsopts.Headers = tmp.WSOpts.Headers
+			}
+
+			if tmp.WSOpts.V2rayHttpUpgradeFastOpen == true {
+				wsopts.V2rayHttpUpgradeFastOpen = true
+			}
+
+			if tmp.WSOpts.MaxEarlyData != 0 {
+				wsopts.MaxEarlyData = tmp.WSOpts.MaxEarlyData
+				wsopts.EarlyDataHeaderName = tmp.WSOpts.EarlyDataHeaderName
+			}
 		}
 
-		if tmp.WSOpts != nil && tmp.WSOpts.V2rayHttpUpgradeFastOpen == true {
-			wsopts.V2rayHttpUpgradeFastOpen = true
-		}
-
-		if !(wsopts.Path == "" && len(wsopts.Headers) == 0 && wsopts.V2rayHttpUpgradeFastOpen == false) {
+		if !(wsopts.Path == "" && len(wsopts.Headers) == 0 && wsopts.V2rayHttpUpgradeFastOpen == false && wsopts.MaxEarlyData == 0) {
 			v.WSOpts = &wsopts
 		}
 		break
@@ -488,7 +497,8 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			if vmessJson.Net == "httpupgrade" {
 				fastopen = true
 			}
-			if !(vmessJson.Host == "" && vmessJson.Path == "" && fastopen == false) {
+			ed := ParseEarlyData(vmessJson.Path)
+			if !(vmessJson.Host == "" && vmessJson.Path == "" && fastopen == false && ed == 0) {
 				wsopts = &WSOptions{
 					Path: vmessJson.Path,
 					V2rayHttpUpgradeFastOpen: fastopen,
@@ -496,6 +506,10 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				if vmessJson.Host != "" {
 					wsopts.Headers = make(map[string]string, 0)
 					wsopts.Headers["Host"] = vmessJson.Host
+				}
+				if ed != 0 {
+					wsopts.MaxEarlyData = ed
+					wsopts.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
 				}
 			}
 			break

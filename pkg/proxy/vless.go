@@ -200,6 +200,21 @@ func (v Vless) Link() (link string) {
 	return uri.String()
 }
 
+func ParseEarlyData(s string) int {
+	ed := 0
+	if s != "" {
+		if path, err := url.Parse(s); err == nil {
+			query := path.Query()
+			if earlyData := query.Get("ed"); earlyData != "" {
+				if med, err := strconv.Atoi(earlyData); err == nil {
+					ed = med
+				}
+			}
+		}
+	}
+	return ed
+}
+
 func LoopQueryUnescape(s string) string {
 	for {
 		if s == "" || !strings.Contains(s, "%") {
@@ -276,7 +291,8 @@ func ParseVlessLink(link string) (*Vless, error) {
 		if transformType == "httpupgrade" {
 			fastopen = true
 		}
-		if !(host == "" && path == "" && fastopen == false) {
+		ed := ParseEarlyData(path)
+		if !(host == "" && path == "" && fastopen == false && ed == 0) {
 			wsopts = &WSOptions{
 				Path: path,
 				V2rayHttpUpgradeFastOpen: fastopen,
@@ -284,6 +300,10 @@ func ParseVlessLink(link string) (*Vless, error) {
 			if host != "" {
 				wsopts.Headers = make(map[string]string, 0)
 				wsopts.Headers["Host"] = host
+			}
+			if ed != 0 {
+				wsopts.MaxEarlyData = ed
+				wsopts.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
 			}
 		}
 		break

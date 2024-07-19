@@ -286,7 +286,8 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		if transformType == "httpupgrade" {
 			fastopen = true
 		}
-		if !(host == "" && path == "" && fastopen == false) {
+		ed := ParseEarlyData(path)
+		if !(host == "" && path == "" && fastopen == false && ed == 0) {
 			wsopts = &WSOptions{
 				Path: path,
 				V2rayHttpUpgradeFastOpen: fastopen,
@@ -294,6 +295,10 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			if host != "" {
 				wsopts.Headers = make(map[string]string, 0)
 				wsopts.Headers["Host"] = host
+			}
+			if ed != 0 {
+				wsopts.MaxEarlyData = ed
+				wsopts.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
 			}
 		}
 		break
