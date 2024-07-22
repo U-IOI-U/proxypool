@@ -34,6 +34,7 @@ type Vless struct {
 	QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 	RealityOpts    *RealityOptions   `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
 	KcpOpts        *KCPOptions       `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
+	SplitHttpOpts  *SplitHttpOptions `yaml:"splithttp-opts,omitempty" json:"splithttp-opts,omitempty"`
 }
 
 func (v Vless) Identifier() string {
@@ -157,6 +158,16 @@ func (v Vless) Link() (link string) {
 			}
 		}
 		break
+	case "splithttp":
+		query.Set("type", v.Network)
+		if v.SplitHttpOpts != nil {
+			if v.SplitHttpOpts.Host != "" {
+				query.Set("host", v.SplitHttpOpts.Host)
+			}
+			if v.SplitHttpOpts.Path != "" {
+				query.Set("path", v.SplitHttpOpts.Path)
+			}
+		}
 	case "http":
 		query.Set("type", "tcp")
 		query.Set("headerType", "http")
@@ -282,6 +293,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
 	var kcpopts *KCPOptions
+	var splithttpopts *SplitHttpOptions
 	transformType, _ := ParseProxyNetwork(moreInfos.Get("type"))
 	switch transformType {
 	case "ws", "httpupgrade":
@@ -353,6 +365,15 @@ func ParseVlessLink(link string) (*Vless, error) {
 			}
 		}
 		break
+	case "splithttp":
+		host := moreInfos.Get("host")
+		path := moreInfos.Get("path")
+		if !(host == "" && path == "") {
+			splithttpopts = &SplitHttpOptions{
+				Host: host,
+				Path: path,
+			}
+		}
 	// case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
@@ -418,6 +439,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 		QuicOpts:       quicopts,
 		RealityOpts:    realityopts,
 		KcpOpts:        kcpopts,
+		SplitHttpOpts:  splithttpopts,
 	}, nil
 }
 

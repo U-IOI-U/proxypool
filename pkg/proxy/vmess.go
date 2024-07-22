@@ -39,6 +39,7 @@ type Vmess struct {
 	WSOpts         *WSOptions    `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 	QuicOpts       *QUICOptions  `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 	KcpOpts        *KCPOptions   `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
+	SplitHttpOpts  *SplitHttpOptions `yaml:"splithttp-opts,omitempty" json:"splithttp-opts,omitempty"`
 }
 
 func (v *Vmess) UnmarshalJSON(data []byte) error {
@@ -61,6 +62,7 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 		WSOpts         *WSOptions        `yaml:"ws-opts,omitempty" json:"ws-opts,omitempty"`
 		QuicOpts       *QUICOptions      `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 		KcpOpts        *KCPOptions       `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
+		SplitHttpOpts  *SplitHttpOptions `yaml:"splithttp-opts,omitempty" json:"splithttp-opts,omitempty"`
 
 		WSPath         string            `yaml:"ws-path,omitempty" json:"ws-path,omitempty"`
 		WSHeaders      map[string]string `yaml:"ws-headers,omitempty" json:"ws-headers,omitempty"`
@@ -151,6 +153,12 @@ func (v *Vmess) UnmarshalJSON(data []byte) error {
 			}
 		}
 		break
+	case "splithttp":
+		if tmp.SplitHttpOpts != nil {
+			if !(tmp.SplitHttpOpts.Host == "" && tmp.SplitHttpOpts.Path == "") {
+				v.SplitHttpOpts = tmp.SplitHttpOpts
+			}
+		}
 	// case "tcp":
 	default:
 		v.Network = "tcp"
@@ -311,6 +319,11 @@ func (v Vmess) toLinkJson() vmessLinkJson {
 			vj.Path = v.KcpOpts.Seed
 		}
 		break
+	case "splithttp":
+		if v.SplitHttpOpts != nil {
+			vj.Host = v.SplitHttpOpts.Host
+			vj.Path = v.SplitHttpOpts.Path
+		}
 	// case "tcp":
 	default:
 		if v.TcpOpts != nil {
@@ -491,6 +504,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 		var grpcopts *GrpcOptions
 		var quicopts *QUICOptions
 		var kcpopts *KCPOptions
+		var splithttpopts *SplitHttpOptions
 		switch vmessJson.Net {
 		case "ws", "httpupgrade":
 			fastopen := false
@@ -550,6 +564,13 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 			}
 			break
+		case "splithttp":
+			if !(vmessJson.Host == "" && vmessJson.Path == "") {
+				splithttpopts = &SplitHttpOptions{
+					Host: vmessJson.Host,
+					Path: vmessJson.Path,
+				}
+			}
 		// case "tcp":
 		default:
 			if vmessJson.Type == "http" {
@@ -602,6 +623,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			WSOpts:         wsopts,
 			QuicOpts:       quicopts,
 			KcpOpts:        kcpopts,
+			SplitHttpOpts:  splithttpopts,
 		}
 
 		return &v, nil

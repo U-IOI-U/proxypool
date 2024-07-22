@@ -25,6 +25,11 @@ type TCPOptions struct {
 	Path    string  `yaml:"path,omitempty" json:"path,omitempty"`
 }
 
+type SplitHttpOptions struct {
+	Host    string  `yaml:"host,omitempty" json:"host,omitempty"`
+	Path    string  `yaml:"path,omitempty" json:"path,omitempty"`
+}
+
 type WSOptions struct {
 	Path    string            `yaml:"path,omitempty" json:"path,omitempty"`
 	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
@@ -402,19 +407,19 @@ func CheckProxyClashSupported(b Proxy) bool {
 		break
 	case "trojan":
 		trojan := b.(*Trojan)
-		if trojan.Network == "kcp" {
+		if trojan.Network == "kcp" || trojan.Network == "splithttp" {
 			return false
 		}
 		break
 	case "vless":
 		vless := b.(*Vless)
-		if vless.Network == "kcp" {
+		if vless.Network == "kcp" || vless.Network == "splithttp" {
 			return false
 		}
 		break
 	case "vmess":
 		vmess := b.(*Vmess)
-		if vmess.Network == "kcp" {
+		if vmess.Network == "kcp" || vmess.Network == "splithttp" {
 			return false
 		}
 		break
@@ -439,7 +444,7 @@ func ParseProxyNetwork(n string) (string, int) {
 		return "", 1
 	} else if n == "trojangrpc" || n == "trgrpc" || n == "mm_grpc" || n == "GRPC" {
 		return "grpc", 1
-	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp" || n == "httpupgrade") {
+	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp" || n == "httpupgrade" || n == "splithttp") {
 		return "tcp", -1
 	}
 	return n, 0

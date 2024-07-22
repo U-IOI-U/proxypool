@@ -36,6 +36,7 @@ type Trojan struct {
 	QuicOpts       *QUICOptions    `yaml:"quic-opts,omitempty" json:"quic-opts,omitempty"`
 	RealityOpts    *RealityOptions `yaml:"reality-opts,omitempty" json:"reality-opts,omitempty"`
 	KcpOpts        *KCPOptions     `yaml:"kcp-opts,omitempty" json:"kcp-opts,omitempty"`
+	SplitHttpOpts  *SplitHttpOptions `yaml:"splithttp-opts,omitempty" json:"splithttp-opts,omitempty"`
 }
 
 /**
@@ -169,6 +170,16 @@ func (t Trojan) Link() (link string) {
 			}
 		}
 		break
+	case "splithttp":
+		query.Set("type", t.Network)
+		if t.SplitHttpOpts != nil {
+			if t.SplitHttpOpts.Host != "" {
+				query.Set("host", t.SplitHttpOpts.Host)
+			}
+			if t.SplitHttpOpts.Path != "" {
+				query.Set("path", t.SplitHttpOpts.Path)
+			}
+		}
 	case "http":
 		query.Set("type", "tcp")
 		query.Set("headerType", "http")
@@ -277,6 +288,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 	var grpcopts *GrpcOptions
 	var quicopts *QUICOptions
 	var kcpopts *KCPOptions
+	var splithttpopts *SplitHttpOptions
 	transformType, _ := ParseProxyNetwork(moreInfos.Get("type"))
 	switch transformType {
 	case "ws", "httpupgrade":
@@ -348,6 +360,15 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 			}
 		}
 		break
+	case "splithttp":
+		host := moreInfos.Get("host")
+		path := moreInfos.Get("path")
+		if !(host == "" && path == "") {
+			splithttpopts = &SplitHttpOptions{
+				Host: host,
+				Path: path,
+			}
+		}
 	// case "tcp": /* default */
 	default:
 		host := moreInfos.Get("host")
@@ -411,6 +432,7 @@ func ParseTrojanLink(link string) (*Trojan, error) {
 		QuicOpts:       quicopts,
 		RealityOpts:    realityopts,
 		KcpOpts:        kcpopts,
+		SplitHttpOpts:  splithttpopts,
 	}, nil
 }
 
