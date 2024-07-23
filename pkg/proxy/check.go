@@ -42,7 +42,7 @@ func CheckAddress(addr string) bool {
 		}
 	}
 
-	if strings.ContainsAny(addr, " /\\&?,@") {
+	if strings.ContainsAny(addr, " /\\&?,@#") {
 		return false
 	}
 
