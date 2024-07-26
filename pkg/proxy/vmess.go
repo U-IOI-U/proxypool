@@ -584,6 +584,8 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 				if vmessJson.Path != "" {
 					httpopts.Path = []string{vmessJson.Path}
+				} else {
+					httpopts.Path = []string{"/"}
 				}
 			} else {
 				vmessJson.Net = "tcp"

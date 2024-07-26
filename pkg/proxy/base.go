@@ -341,7 +341,21 @@ func FixProxyValue(b Proxy) Proxy {
 		switch vmess.Network {
 		case "h2", "grpc":
 			vmess.TLS = true
-			break
+		// if http path is nil, mihomo maybe panic
+		case "http":
+			if vmess.HTTPOpts != nil {
+				if vmess.HTTPOpts.Method == "" {
+					vmess.HTTPOpts.Method = "GET"
+				}
+				if len(vmess.HTTPOpts.Path) == 0 {
+					vmess.HTTPOpts.Path = []string{"/"}
+				}
+			} else {
+				vmess.HTTPOpts = &HTTPOptions{
+					Method: "GET",
+					Path:   []string{"/"},
+				}
+			}
 		}
 		break
 	case "trojan":
