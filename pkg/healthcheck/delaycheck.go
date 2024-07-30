@@ -19,8 +19,7 @@ import (
 
 	"github.com/ivpusic/grpool"
 
-	"github.com/Dreamacro/clash/adapter"
-	mihomo "github.com/metacubex/mihomo/adapter"
+	"github.com/metacubex/mihomo/adapter"
 )
 
 func CleanBadProxiesWithGrpool(proxies []proxy.Proxy) (cproxies []proxy.Proxy) {
@@ -106,55 +105,29 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 	m := sync.Mutex{}
 	closed := false
 
-	if p.TypeName() == "vless" || p.TypeName() == "tuic" || p.TypeName() == "hysteria" || p.TypeName() == "hysteria2" { // Vless有效性
-		clashProxy, err := mihomo.ParseProxy(pmap)
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println(p)
-			return 0, err
-		}
-
-		go func() {
-			sTime := time.Now()
-			err = HTTPHeadViaVless(clashProxy, "http://www.gstatic.com/generate_204")
-			m.Lock()
-			if closed {
-				m.Unlock()
-				return
-			}
-			closed = true
-			m.Unlock()
-
-			respC <- struct {
-				time.Duration
-				error
-			}{time.Since(sTime), err}
-		}()
-	} else {
-		clashProxy, err := adapter.ParseProxy(pmap)
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println(p)
-			return 0, err
-		}
-
-		go func() {
-			sTime := time.Now()
-			err = HTTPHeadViaProxy(clashProxy, "http://www.gstatic.com/generate_204")
-			m.Lock()
-			if closed {
-				m.Unlock()
-				return
-			}
-			closed = true
-			m.Unlock()
-
-			respC <- struct {
-				time.Duration
-				error
-			}{time.Since(sTime), err}
-		}()
+	clashProxy, err := adapter.ParseProxy(pmap)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println(p)
+		return 0, err
 	}
+
+	go func() {
+		sTime := time.Now()
+		err = HTTPHeadViaProxy(clashProxy, "http://www.gstatic.com/generate_204")
+		m.Lock()
+		if closed {
+			m.Unlock()
+			return
+		}
+		closed = true
+		m.Unlock()
+
+		respC <- struct {
+			time.Duration
+			error
+		}{time.Since(sTime), err}
+	}()
 
 	select {
 	case pair, ok := <-respC:

@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Dreamacro/clash/adapter"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/metacubex/mihomo/adapter"
+	C "github.com/metacubex/mihomo/constant"
 	"github.com/ivpusic/grpool"
 	"github.com/u-ioi-u/proxypool/log"
 	"github.com/u-ioi-u/proxypool/pkg/proxy"

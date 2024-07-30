@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Dreamacro/clash/adapter"
+	"github.com/metacubex/mihomo/adapter"
 	"github.com/ivpusic/grpool"
 	"github.com/u-ioi-u/proxypool/log"
 	"github.com/u-ioi-u/proxypool/pkg/proxy"
