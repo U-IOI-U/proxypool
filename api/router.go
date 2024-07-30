@@ -119,18 +119,21 @@ func setupRouter() {
 				appcache.SetString("clashproxies", text)
 			}
 		} else if proxyTypes == "all" {
-			proxies := appcache.GetProxies("allproxies")
-			clash := provider.Clash{
-				Base: provider.Base{
-					Proxies:    &proxies,
-					Types:      proxyTypes,
-					Country:    proxyCountry,
-					NotCountry: proxyNotCountry,
-					Speed:      proxySpeed,
-					Filter:     proxyFilter,
-				},
+			text = appcache.GetString("allclashproxies")
+			if text == "" {
+				proxies := appcache.GetProxies("allproxies")
+				clash := provider.Clash{
+					Base: provider.Base{
+						Proxies:    &proxies,
+						Types:      proxyTypes,
+						Country:    proxyCountry,
+						NotCountry: proxyNotCountry,
+						Speed:      proxySpeed,
+						Filter:     proxyFilter,
+					},
+				}
+				text = clash.Provide() // 根据Query筛选节点
 			}
-			text = clash.Provide() // 根据Query筛选节点
 		} else {
 			proxies := appcache.GetProxies("proxies")
 			clash := provider.Clash{
@@ -167,18 +170,21 @@ func setupRouter() {
 				appcache.SetString("surgeproxies", text)
 			}
 		} else if proxyTypes == "all" {
-			proxies := appcache.GetProxies("allproxies")
-			surge := provider.Surge{
-				Base: provider.Base{
-					Proxies:    &proxies,
-					Types:      proxyTypes,
-					Country:    proxyCountry,
-					NotCountry: proxyNotCountry,
-					Speed:      proxySpeed,
-					Filter:     proxyFilter,
-				},
+			text = appcache.GetString("allsurgeproxies")
+			if text == "" {
+				proxies := appcache.GetProxies("allproxies")
+				surge := provider.Surge{
+					Base: provider.Base{
+						Proxies:    &proxies,
+						Types:      proxyTypes,
+						Country:    proxyCountry,
+						NotCountry: proxyNotCountry,
+						Speed:      proxySpeed,
+						Filter:     proxyFilter,
+					},
+				}
+				text = surge.Provide()
 			}
-			text = surge.Provide()
 		} else {
 			proxies := appcache.GetProxies("proxies")
 			surge := provider.Surge{

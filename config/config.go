@@ -50,6 +50,9 @@ type ConfigOptions struct {
 	SaveProxyFile         string   `json:"save-proxy-file,omitempty" yaml:"save-proxy-file,omitempty"`
 	SaveProxyMode         string   `json:"save-proxy-mode,omitempty" yaml:"save-proxy-mode,omitempty"`
 	ShowSubscribe         string   `json:"show-subscribe-mode,omitempty" yaml:"show-subscribe-mode,omitempty"`
+	CacheAllProxiesMin    int      `json:"cache-allproxiesmin,omitempty" yaml:"cache-allproxiesmin,omitempty"`
+	CacheAllClashProxies  bool     `json:"cache-allclashproxies,omitempty" yaml:"cache-allclashproxies,omitempty"`
+	CacheAllSurgeProxies  bool     `json:"cache-allsurgeproxies,omitempty" yaml:"cache-allsurgeproxies,omitempty"`
 }
 
 // Config 配置

@@ -145,13 +145,33 @@ func CrawlGo(pGetters PGetterList) {
 	log.Infoln("Hysteria2ProxiesCount: %d", cache.Hysteria2ProxiesCount)
 
 	// save all proxy
-	if C.Config.SaveProxyFile != "" {
-		provider.Pfile{
-			Base: provider.Base{
-				Proxies: &proxies,
-			},
-		}.SaveProxies(C.Config.SaveProxyFile + "_all", C.Config.SaveProxyMode)
-	}
+	go func () {
+		if C.Config.SaveProxyFile != "" {
+			provider.Pfile{
+				Base: provider.Base{
+					Proxies: &proxies,
+				},
+			}.SaveProxies(C.Config.SaveProxyFile + "_all", C.Config.SaveProxyMode)
+		}
+		if C.Config.CacheAllClashProxies && cache.AllProxiesCount >= C.Config.CacheAllProxiesMin {
+			cache.SetString("allclashproxies", provider.Clash{
+				Base: provider.Base{
+					Proxies: &proxies,
+				},
+			}.Provide()) // update static string provider
+		} else {
+			cache.SetString("allclashproxies", "")
+		}
+		if C.Config.CacheAllSurgeProxies && cache.AllProxiesCount >= C.Config.CacheAllProxiesMin {
+			cache.SetString("allsurgeproxies", provider.Surge{
+				Base: provider.Base{
+					Proxies: &proxies,
+				},
+			}.Provide())
+		} else {
+			cache.SetString("allsurgeproxies", "")
+		}
+	}()
 
 	// Health Check
 	log.Infoln("Now proceed proxy health check...")
