@@ -137,7 +137,9 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 	case <-time.After(DelayTimeout * 2):
 		m.Lock()
 		if closed {
-			// pair, ok := <-respC
+			fmt.Printf("receive proxy msg start!")
+			<-respC
+			fmt.Printf("receive proxy msg done!")
 		} else {
 			closed = true
 		}
