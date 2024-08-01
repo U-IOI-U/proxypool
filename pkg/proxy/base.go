@@ -320,7 +320,10 @@ func CheckProxyValid(b Proxy) bool {
 	case "tuic":
 		break
 	case "hysteria":
-		break
+		hysteria := b.(*Hysteria)
+		if hysteria.UpSpeed == "" {
+			return false
+		}
 	case "hysteria2":
 		break
 	}
