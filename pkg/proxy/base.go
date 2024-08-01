@@ -454,21 +454,33 @@ func GoodNodeThatClashUnsupported(b Proxy) bool {
 // 1: known network
 // -1: unknown network
 func ParseProxyNetwork(n string) (string, int) {
-	if n == "none" {
-		return "", 1
-	} else if n == "trojangrpc" || n == "trgrpc" || n == "mm_grpc" || n == "GRPC" {
-		return "grpc", 1
-	} else if !(n== "" || n == "tcp" || n == "ws" || n == "grpc" || n == "http" || n == "h2" || n == "quic" || n == "kcp" || n == "httpupgrade" || n == "splithttp") {
-		return "tcp", -1
+	if n == "" {
+		return n, 0
 	}
-	return n, 0
+	switch n {
+	case "none":
+		return "", 1
+	case "trojangrpc", "trgrpc", "mm_grpc", "GRPC":
+		return "grpc", 1
+	case "tcp", "ws", "grpc", "http", "h2", "quic", "kcp", "httpupgrade", "splithttp":
+		return n, 0
+	}
+	return "tcp", -1
+}
+
+func ParseProxySni(sni string) (string) {
+	switch sni {
+	case "<nil>":
+		return ""
+	}
+	return sni
 }
 
 func ParseProxyALPN(s string) []string {
 	alpn := make([]string, 0)
 	if s != "" {
 		for _, value := range strings.Split(s, ",") {
-			if value == "" {
+			if value == "" || value == "<nil>" {
 				continue
 			}
 			alpn = append(alpn, value)
@@ -478,15 +490,19 @@ func ParseProxyALPN(s string) []string {
 }
 
 func ParseProxyFlow(s string) (string, bool) {
-	if s == "xtls-rprx-direct" || s == "xtls-rprx-direct-udp443" {
+	switch s {
+	case "xtls-rprx-direct","xtls-rprx-direct-udp443":
 		return "", true
 	}
 	return s, false
 }
 
 func ParseProxyFingerPrint(fp string) string {
-	if fp == "随机" || fp == "rando" {
+	switch fp {
+	case "随机","rando":
 		return "random"
+	case "<nil>":
+		return ""
 	}
 	return fp
 }

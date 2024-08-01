@@ -495,7 +495,11 @@ func ParseVmessLink(link string) (*Vmess, error) {
 
 		tls := vmessJson.Tls == "tls"
 
+		sni := ParseProxySni(vmessJson.SNI)
+
 		alpn := ParseProxyALPN(vmessJson.ALPN)
+
+		fingerprint := ParseProxyFingerPrint(vmessJson.Fp)
 
 		var tcpopts *TCPOptions
 		var wsopts *WSOptions
@@ -589,7 +593,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 				}
 			} else {
 				vmessJson.Net = "tcp"
-				if !((vmessJson.Type == "" || vmessJson.Type == "none") && vmessJson.Host == "" && vmessJson.Path == "") {
+				if !((vmessJson.Type == "" || vmessJson.Type == "none" || vmessJson.Type == "<nil>") && vmessJson.Host == "" && vmessJson.Path == "") {
 					tcpopts = &TCPOptions{
 						Type: vmessJson.Type,
 						Host: vmessJson.Host,
@@ -612,9 +616,9 @@ func ParseVmessLink(link string) (*Vmess, error) {
 			AlterID:        alterId,
 			Cipher:         vmessJson.Scy,
 			Network:        vmessJson.Net,
-			CFingerPrint:   vmessJson.Fp,
+			CFingerPrint:   fingerprint,
 			ALPN:           alpn,
-			SNI:            vmessJson.SNI,
+			SNI:            sni,
 			TLS:            tls,
 			SkipCertVerify: true,
 
