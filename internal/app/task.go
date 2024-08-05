@@ -109,7 +109,9 @@ func CrawlGo(pGetters PGetterList) {
 		tool.SubScribeHistoryShow("debug")
 	}
 
-	proxies = proxies.Derive()
+	if C.Config.ProxySSDerive {
+		proxies = proxies.Derive()
+	}
 	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
 
 	// Clean Clash unsupported proxy because health check depends on clash

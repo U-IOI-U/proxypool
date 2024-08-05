@@ -47,6 +47,9 @@ zero_fail: false           # 该功能需要内存，默认下关闭此功能
 zero_fail_num: 10          # 如果取10次,取到的节点数都为0,认为该subscribe的url已经失效,后续不再抓取该链接,仅在每次抓取时失败次数累加1
 zero_fail_multifactor: 20  # 抓取时失败次数的上限,抓取失败次数达到此上限后，url不再屏蔽,开始抓取,抓取失败次数会从0开始计算,直到再次达到失败的上限会再次被屏蔽。每次被屏蔽,该数值会自我叠加，就是每次屏蔽都比上次屏蔽的时间要久一倍。
 
+# proxy
+proxy-ss-derive:       false
+
 # cache
 cache-allproxiesmin:   1000
 cache-allclashproxies: false

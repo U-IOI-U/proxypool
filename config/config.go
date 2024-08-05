@@ -47,6 +47,7 @@ type ConfigOptions struct {
 	ActiveFrequency       uint16   `json:"active-frequency" yaml:"active-frequency" `
 	ActiveInterval        uint64   `json:"active-interval" yaml:"active-interval"`
 	ActiveMaxNumber       uint16   `json:"active-max-number" yaml:"active-max-number"`
+	ProxySSDerive         bool     `json:"proxy-ss-derive,omitempty" yaml:"proxy-ss-derive,omitempty"`
 	SaveProxyFile         string   `json:"save-proxy-file,omitempty" yaml:"save-proxy-file,omitempty"`
 	SaveProxyMode         string   `json:"save-proxy-mode,omitempty" yaml:"save-proxy-mode,omitempty"`
 	ShowSubscribe         string   `json:"show-subscribe-mode,omitempty" yaml:"show-subscribe-mode,omitempty"`
