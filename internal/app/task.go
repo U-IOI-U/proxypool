@@ -112,7 +112,13 @@ func CrawlGo(pGetters PGetterList) {
 	if C.Config.ProxySSDerive {
 		proxies = proxies.Derive()
 	}
-	log.Infoln("CrawlGo unique proxy count: %d", len(proxies))
+
+	proxies_len := proxies.Len()
+	log.Infoln("CrawlGo unique proxy count: %d", proxies_len)
+
+	if proxies_len == 0 {
+		return
+	}
 
 	// Clean Clash unsupported proxy because health check depends on clash
 	// proxies = provider.Clash{
@@ -123,7 +129,7 @@ func CrawlGo(pGetters PGetterList) {
 	// log.Infoln("CrawlGo clash supported proxy count: %d", len(proxies))
 
 	cache.SetProxies("allproxies", proxies)
-	cache.AllProxiesCount = proxies.Len()
+	cache.AllProxiesCount = proxies_len
 	log.Infoln("AllProxiesCount: %d", cache.AllProxiesCount)
 	cache.SSProxiesCount = proxies.TypeLen("ss")
 	log.Infoln("SSProxiesCount: %d", cache.SSProxiesCount)
