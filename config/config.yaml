@@ -87,6 +87,7 @@ suburl-blacklist-suffix:
   - ".pdf"
   - ".svg"
   - ".MP4"
+  - ".mdx"
   - "announce"
   - "releases"
 # 在Subscribe类型的URL中排除下面开头的网址
