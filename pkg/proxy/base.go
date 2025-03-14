@@ -403,7 +403,10 @@ func FixProxyValue(b Proxy) Proxy {
 	case "hysteria":
 		break
 	case "hysteria2":
-		break
+		hysteria2 := b.(*Hysteria2)
+		if hysteria2.Obfs != "" && hysteria2.ObfsPassword == "" {
+			hysteria2.Obfs = ""
+		}
 	}
 	return b
 }
