@@ -145,7 +145,7 @@ func testDelay(p proxy.Proxy) (delay time.Duration, err error) {
 		}
 		m.Unlock()
 
-		fmt.Printf("unexpected delay check timeout error in proxy %s\n", p.Link())
+		// fmt.Printf("unexpected delay check timeout error in proxy %s\n", p.Link())
 	}
 	return 0, context.DeadlineExceeded
 }
