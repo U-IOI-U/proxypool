@@ -341,6 +341,10 @@ func FixProxyValue(b Proxy) Proxy {
 		if cipher, chg := ParseVmessCipher(vmess.Cipher); chg != 0 {
 			vmess.Cipher = cipher
 		}
+		// fix fingerprint
+		if vmess.CFingerPrint != "" {
+			vmess.CFingerPrint = ParseProxyFingerPrint(vmess.CFingerPrint)
+		}
 		switch vmess.Network {
 		case "h2", "grpc":
 			vmess.TLS = true
@@ -366,6 +370,10 @@ func FixProxyValue(b Proxy) Proxy {
 		if network, chg := ParseProxyNetwork(trojan.Network); chg != 0 {
 			trojan.Network = network
 		}
+		// fix fingerprint
+		if trojan.CFingerPrint != "" {
+			trojan.CFingerPrint = ParseProxyFingerPrint(trojan.CFingerPrint)
+		}
 		break
 	case "http":
 		break
@@ -373,6 +381,10 @@ func FixProxyValue(b Proxy) Proxy {
 		vless := b.(*Vless)
 		if flow, ok := ParseProxyFlow(vless.Flow); ok {
 			vless.Flow = flow
+		}
+		// fix fingerprint
+		if vless.CFingerPrint != "" {
+			vless.CFingerPrint = ParseProxyFingerPrint(vless.CFingerPrint)
 		}
 		// if flow is xtls-rprx-vision, reality-opts is nil, mihomo maybe panic
 		if vless.RealityOpts == nil && vless.Flow == "xtls-rprx-vision"{
@@ -505,8 +517,10 @@ func ParseProxyFlow(s string) (string, bool) {
 
 func ParseProxyFingerPrint(fp string) string {
 	switch fp {
-	case "随机","rando":
+	case "随机", "rando", "ran...", "...":
 		return "random"
+	case "chrom...", "chro...", "chr...", "ch...":
+		return "chrome"
 	case "<nil>":
 		return ""
 	}

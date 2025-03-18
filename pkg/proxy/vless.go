@@ -284,7 +284,7 @@ func ParseVlessLink(link string) (*Vless, error) {
 
 	alpn := ParseProxyALPN(moreInfos.Get("alpn"))
 
-	fingerprint := ParseProxyFingerPrint(moreInfos.Get("fp"))
+	fingerprint := moreInfos.Get("fp")
 
 	var tcpopts *TCPOptions
 	var httpopts *HTTPOptions

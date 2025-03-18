@@ -499,7 +499,7 @@ func ParseVmessLink(link string) (*Vmess, error) {
 
 		alpn := ParseProxyALPN(vmessJson.ALPN)
 
-		fingerprint := ParseProxyFingerPrint(vmessJson.Fp)
+		fingerprint := vmessJson.Fp
 
 		var tcpopts *TCPOptions
 		var wsopts *WSOptions
