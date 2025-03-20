@@ -17,6 +17,7 @@ var (
 type Hysteria2 struct {
 	Base
 	Password             string            `yaml:"password" json:"password"`
+	MPorts               string            `yaml:"ports,omitempty" json:"ports,omitempty"`
 	Obfs                 string            `yaml:"obfs,omitempty" json:"obfs,omitempty"`
 	ObfsPassword         string            `yaml:"obfs-password,omitempty" json:"obfs-password,omitempty"`
 	ALPN                 []string          `yaml:"alpn,omitempty" json:"alpn,omitempty"`
@@ -59,6 +60,9 @@ func (h Hysteria2) Link() (link string) {
 	}
 	if h.SNI != "" {
 		query.Set("sni", h.SNI)
+	}
+	if h.MPorts != "" {
+		query.Set("mport", h.MPorts)
 	}
 	if h.Obfs != "" {
 		query.Set("obfs", h.Obfs)
@@ -113,6 +117,8 @@ func ParseHysteria2Link(link string) (*Hysteria2, error) {
 		skip_certverify = false
 	}
 
+	mports := moreInfos.Get("mport")
+
 	obfs := moreInfos.Get("obfs")
 	if obfs == "none" {
 		obfs = ""
@@ -131,6 +137,7 @@ func ParseHysteria2Link(link string) (*Hysteria2, error) {
 			Type:   "hysteria2",
 		},
 		Password:          password,
+		MPorts:            mports,
 		Obfs:              obfs,
 		ObfsPassword:      obfspassword,
 		ALPN:              alpn,
