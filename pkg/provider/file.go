@@ -33,7 +33,7 @@ func (c Pfile) Provide(mode string) string {
 					if l == "" {
 						fmt.Println(p)
 					} else {
-						log.Debugln(l)
+						log.Debugln("%s", l)
 					}
 				} else {
 					resultBuilder.WriteString(s + "\n")

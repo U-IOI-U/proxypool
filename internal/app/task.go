@@ -104,7 +104,7 @@ func CrawlGo(pGetters PGetterList) {
 
 	// show subscribe url
 	if C.Config.ShowSubscribe == "showall" || C.Config.ShowSubscribe == "showsuc" {
-		log.Debugln(tool.SubScribeHistoryShow(C.Config.ShowSubscribe))
+		log.Debugln("%s", tool.SubScribeHistoryShow(C.Config.ShowSubscribe))
 	} else {
 		tool.SubScribeHistoryShow("debug")
 	}
