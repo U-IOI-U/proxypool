@@ -268,7 +268,7 @@ func CheckProxyValid(b Proxy) bool {
 	if !CheckAddress(b.BaseInfo().Server) {
 		return false
 	}
-	if !CheckPort(b.BaseInfo().Port) {
+	if b.TypeName() != "hysteria2" && !CheckPort(b.BaseInfo().Port) {
 		return false
 	}
 	switch b.TypeName() {
